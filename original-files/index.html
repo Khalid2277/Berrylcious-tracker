@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Berrylicious Transaction Classifier</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 24px;
+      margin: 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      text-align: center;
+    }
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d0d0d7;
+      font-size: 14px;
+    }
+    .input-row button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      background: #111827;
+      color: #ffffff;
+      transition: transform 0.05s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+    }
+    .input-row button:hover {
+      opacity: 0.9;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      transform: translateY(-1px);
+    }
+    .section-title {
+      margin-top: 24px;
+      margin-bottom: 8px;
+      font-size: 18px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    table thead {
+      background: #f9fafb;
+    }
+    table th, table td {
+      padding: 8px 6px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    table th {
+      font-weight: 600;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .summary-card {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+    }
+    .summary-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .summary-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .combo-chooser {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #fefce8;
+      border: 1px solid #facc15;
+      display: none;
+    }
+    .combo-chooser-title {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .combo-chooser button {
+      margin-top: 6px;
+      margin-right: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      background: #111827;
+      color: #ffffff;
+    }
+    .error {
+      color: #b91c1c;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Berrylicious Transaction Classifier</h1>
+
+    <div class="input-row">
+      <input type="number" id="amountInput" placeholder="Transaction amount in AED (e.g. 70)" />
+      <button onclick="handleAddTransaction()">Add Transaction</button>
+    </div>
+    <div id="errorMsg" class="error"></div>
+
+    <div id="comboChooser" class="combo-chooser"></div>
+
+    <h2 class="section-title">Transactions</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Amount (AED)</th>
+          <th>Breakdown</th>
+        </tr>
+      </thead>
+      <tbody id="transactionsBody"></tbody>
+    </table>
+
+    <h2 class="section-title">Totals Sold</h2>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-label">Rocky Road (55 AED)</div>
+        <div class="summary-value" id="totalRocky">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Strawberry Chocolate (30 AED)</div>
+        <div class="summary-value" id="totalStrawberry">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Dubai Chocolate Strawberry (35 AED)</div>
+        <div class="summary-value" id="totalDubai">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Cookies (15 AED)</div>
+        <div class="summary-value" id="totalCookies">0</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PRODUCTS = [
+      { id: "rocky", name: "Rocky Road", price: 55 },
+      { id: "strawberry", name: "Strawberry Chocolate", price: 30 },
+      { id: "dubai", name: "Dubai Chocolate Strawberry", price: 35 },
+      { id: "cookies", name: "Cookies", price: 15 },
+    ];
+
+    let totals = {
+      rocky: 0,
+      strawberry: 0,
+      dubai: 0,
+      cookies: 0,
+    };
+
+    let transactions = [];
+    let pendingAmount = null;
+    let pendingCombos = [];
+
+    function handleAddTransaction() {
+      const amountInput = document.getElementById("amountInput");
+      const errorMsg = document.getElementById("errorMsg");
+      const chooser = document.getElementById("comboChooser");
+      errorMsg.textContent = "";
+      chooser.style.display = "none";
+      chooser.innerHTML = "";
+
+      const amount = parseInt(amountInput.value, 10);
+
+      if (isNaN(amount) || amount <= 0) {
+        errorMsg.textContent = "Please enter a valid positive amount.";
+        return;
+      }
+
+      const combos = findCombinations(amount);
+      if (combos.length === 0) {
+        errorMsg.textContent = "No valid product combination for this amount.";
+        return;
+      } else if (combos.length === 1) {
+        addTransaction(amount, combos[0]);
+        amountInput.value = "";
+      } else {
+        // Let user choose between multiple valid combos
+        pendingAmount = amount;
+        pendingCombos = combos;
+        showComboChooser(amount, combos);
+      }
+    }
+
+    function findCombinations(amount) {
+      const combos = [];
+      // R = Rocky, D = Dubai, S = Strawberry, C = Cookies
+      const maxRocky = Math.floor(amount / 55);
+      for (let R = 0; R <= maxRocky; R++) {
+        const remainingAfterR = amount - 55 * R;
+        const maxDubai = Math.floor(remainingAfterR / 35);
+        for (let D = 0; D <= maxDubai; D++) {
+          const remainingAfterD = remainingAfterR - 35 * D;
+          const maxStrawberry = Math.floor(remainingAfterD / 30);
+          for (let S = 0; S <= maxStrawberry; S++) {
+            const remainingAfterS = remainingAfterD - 30 * S;
+            if (remainingAfterS < 0) continue;
+            if (remainingAfterS % 15 !== 0) continue;
+            const C = remainingAfterS / 15;
+            combos.push({
+              rocky: R,
+              dubai: D,
+              strawberry: S,
+              cookies: C,
+            });
+          }
+        }
+      }
+      // Optionally: filter out combos with 0 of every product (shouldn't happen)
+      return combos.filter(
+        (c) => c.rocky + c.dubai + c.strawberry + c.cookies > 0
+      );
+    }
+
+    function showComboChooser(amount, combos) {
+      const chooser = document.getElementById("comboChooser");
+      chooser.style.display = "block";
+      chooser.innerHTML = "";
+
+      const title = document.createElement("p");
+      title.className = "combo-chooser-title";
+      title.textContent =
+        "Multiple combinations found for " + amount + " AED. Choose the one you sold:";
+      chooser.appendChild(title);
+
+      combos.forEach((combo, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = comboToText(combo);
+        btn.onclick = () => selectCombo(index);
+        chooser.appendChild(btn);
+      });
+    }
+
+    function selectCombo(index) {
+      if (pendingAmount == null || !pendingCombos[index]) return;
+      addTransaction(pendingAmount, pendingCombos[index]);
+      pendingAmount = null;
+      pendingCombos = [];
+      document.getElementById("amountInput").value = "";
+      const chooser = document.getElementById("comboChooser");
+      chooser.style.display = "none";
+      chooser.innerHTML = "";
+    }
+
+    function addTransaction(amount, combo) {
+      transactions.push({ amount, combo });
+      // Update totals
+      totals.rocky += combo.rocky;
+      totals.strawberry += combo.strawberry;
+      totals.dubai += combo.dubai;
+      totals.cookies += combo.cookies;
+
+      renderTransactions();
+      renderTotals();
+    }
+
+    function comboToText(combo) {
+      const parts = [];
+      if (combo.rocky) parts.push(combo.rocky + " × Rocky Road");
+      if (combo.strawberry) parts.push(combo.strawberry + " × Strawberry Chocolate");
+      if (combo.dubai) parts.push(combo.dubai + " × Dubai Chocolate Strawberry");
+      if (combo.cookies) parts.push(combo.cookies + " × Cookies");
+      return parts.join(", ");
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById("transactionsBody");
+      tbody.innerHTML = "";
+      transactions.forEach((tx, index) => {
+        const tr = document.createElement("tr");
+
+        const tdIndex = document.createElement("td");
+        tdIndex.textContent = index + 1;
+
+        const tdAmount = document.createElement("td");
+        tdAmount.innerHTML = tx.amount + " <span class='badge'>AED</span>";
+
+        const tdBreakdown = document.createElement("td");
+        tdBreakdown.textContent = comboToText(tx.combo);
+
+        tr.appendChild(tdIndex);
+        tr.appendChild(tdAmount);
+        tr.appendChild(tdBreakdown);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTotals() {
+      document.getElementById("totalRocky").textContent = totals.rocky;
+      document.getElementById("totalStrawberry").textContent = totals.strawberry;
+      document.getElementById("totalDubai").textContent = totals.dubai;
+      document.getElementById("totalCookies").textContent = totals.cookies;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Berrylicious Kiosk Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      color: #0f172a;
+      background: #f3f4f6;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      margin: 24px;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+    header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    header small {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      padding: 10px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-wrap: wrap;
+    }
+    .nav button {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #f3f4f6;
+      color: #374151;
+      transition: background 0.1s ease, transform 0.05s ease;
+    }
+    .nav button.active {
+      background: #111827;
+      color: #ffffff;
+    }
+    .nav button:hover {
+      transform: translateY(-1px);
+    }
+
+    main {
+      padding: 16px 20px 20px;
+    }
+    section {
+      display: none;
+    }
+    section.active {
+      display: block;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .card {
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      background: #f9fafb;
+    }
+    .card-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .card-value {
+      font-size: 17px;
+      font-weight: 600;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 6px 4px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    thead {
+      background: #f9fafb;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .form-row label {
+      font-size: 12px;
+      color: #4b5563;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      min-width: 135px;
+      flex: 1;
+    }
+    input, select {
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+    input[type="number"] {
+      text-align: right;
+    }
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: #111827;
+      color: #ffffff;
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .btn-danger {
+      background: #b91c1c;
+      color: #ffffff;
+    }
+    .btn + .btn {
+      margin-left: 8px;
+    }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .error {
+      font-size: 12px;
+      color: #b91c1c;
+      margin-top: 4px;
+    }
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Berrylicious Kiosk Dashboard</h1>
+        <small>Offline webapp · saved in your browser (localStorage)</small>
+      </div>
+      <button class="btn-secondary btn" id="btnReset">Reset all data</button>
+    </header>
+
+    <div class="nav">
+      <button class="active" data-view="dashboard">Dashboard</button>
+      <button data-view="sales">Sales Log</button>
+      <button data-view="products">Products & Costs</button>
+      <button data-view="fixed">Fixed Costs</button>
+      <button data-view="ingredients">Ingredients</button>
+    </div>
+
+    <main>
+      <!-- DASHBOARD -->
+      <section id="view-dashboard" class="active">
+        <h2>Dashboard</h2>
+        <div class="grid">
+          <div class="card">
+            <div class="card-label">Total Revenue</div>
+            <div class="card-value" id="dashTotalRevenue">0 AED</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Total Variable Cost</div>
+            <div class="card-value" id="dashTotalVar">0 AED</div>
+          </div>
+          <div class="card">
+            <div class="card-label">POS Fees</div>
+            <div class="card-value" id="dashPosFees">0 AED</div>
+            <div class="muted">POS fee %: <span id="dashPosRate">0%</span></div>
+          </div>
+          <div class="card">
+            <div class="card-label">Total Profit (before fixed)</div>
+            <div class="card-value" id="dashProfit">0 AED</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="card-label">Fixed Cost</div>
+            <div class="card-value" id="dashFixed">0 AED</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Net Profit After Fixed</div>
+            <div class="card-value" id="dashNet">0 AED</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Total Cups Sold</div>
+            <div class="card-value" id="dashCups">0 cups</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Remaining to Break-even</div>
+            <div class="card-value" id="dashBreakeven">0 AED</div>
+          </div>
+        </div>
+
+        <h3 class="mt-16">Ingredients Usage</h3>
+        <div class="grid">
+          <div class="card">
+            <div class="card-label">Strawberries Used</div>
+            <div class="card-value" id="dashStraw">0 g</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Chocolate Used</div>
+            <div class="card-value" id="dashChoc">0 g</div>
+          </div>
+          <div class="card">
+            <div class="card-label">Kunafa Used</div>
+            <div class="card-value" id="dashKuna">0 g</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SALES LOG -->
+      <section id="view-sales">
+        <h2>Sales Log</h2>
+        <p class="muted">Each row here is like one row in your daily sheet: date, product, cups sold.</p>
+        <form id="formSale" class="form-row">
+          <div class="field">
+            <label for="saleDate">Date</label>
+            <input type="date" id="saleDate" required />
+          </div>
+          <div class="field">
+            <label for="saleProduct">Product</label>
+            <select id="saleProduct"></select>
+          </div>
+          <div class="field">
+            <label for="saleQty">Cups Sold</label>
+            <input type="number" id="saleQty" min="1" step="1" required />
+          </div>
+          <div class="field">
+            <label for="salePrice">Unit Price (AED)</label>
+            <input type="number" id="salePrice" step="0.01" required />
+          </div>
+          <div class="field" style="align-self:flex-end; min-width:120px;">
+            <button class="btn" type="submit">Add Sale</button>
+          </div>
+        </form>
+        <div id="saleError" class="error"></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Product</th>
+              <th>Cups</th>
+              <th>Unit Price</th>
+              <th>Revenue</th>
+              <th>Var. Cost</th>
+              <th>Profit</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody"></tbody>
+        </table>
+      </section>
+
+      <!-- PRODUCTS -->
+      <section id="view-products">
+        <h2>Products & Costs</h2>
+        <p class="muted">This mirrors your product sheet: selling prices, cost per cup, and ingredients per cup.</p>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="posFee">POS Fee (%)</label>
+            <input type="number" id="posFee" min="0" step="0.01" />
+          </div>
+          <div class="field" style="align-self:flex-end; min-width:120px;">
+            <button class="btn" id="btnSavePos">Save POS Fee</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Selling Price (AED)</th>
+              <th>Cost per Cup (AED)</th>
+              <th>Strawberries / cup (pcs)</th>
+              <th>Chocolate / cup (g)</th>
+              <th>Kunafa / cup (g)</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody"></tbody>
+        </table>
+      </section>
+
+      <!-- FIXED COSTS -->
+      <section id="view-fixed">
+        <h2>Fixed Costs</h2>
+        <p class="muted">This mirrors your fixed-cost sheet (kiosk, fridge, machinery, etc.).</p>
+
+        <form id="formFixed" class="form-row">
+          <div class="field">
+            <label for="fixedName">Item</label>
+            <input type="text" id="fixedName" placeholder="Kiosk / Booth" required />
+          </div>
+          <div class="field">
+            <label for="fixedAmount">Amount (AED)</label>
+            <input type="number" id="fixedAmount" step="0.01" min="0" required />
+          </div>
+          <div class="field" style="align-self:flex-end; min-width:120px;">
+            <button class="btn" type="submit">Add Fixed Cost</button>
+          </div>
+        </form>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item</th>
+              <th>Amount (AED)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="fixedTableBody"></tbody>
+        </table>
+        <div class="mt-8">
+          <span class="pill">Total Fixed Cost: <span id="fixedTotal">0 AED</span></span>
+        </div>
+      </section>
+
+      <!-- INGREDIENTS -->
+      <section id="view-ingredients">
+        <h2>Ingredients & Batches (simplified)</h2>
+        <p class="muted">
+          Optional: if you enter bulk costs here, you can keep them as a reference.
+          The dashboard still uses the cost-per-cup you set on the Products tab.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Bulk Qty / Weight (g)</th>
+              <th>Bulk Cost (AED)</th>
+              <th>Cost per Gram (AED)</th>
+            </tr>
+          </thead>
+          <tbody id="ingredientsTableBody"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "berryDashboard_v1";
+
+    const defaultState = {
+      posFeePercent: 0, // % of revenue
+      products: {
+        normal: {
+          id: "normal",
+          name: "normal",
+          price: 30.0,
+          costPerCup: 12.10,
+          strawberriesPerCup: 8,
+          chocolatePerCup: 60,
+          kunafaPerCup: 0,
+        },
+        kunafa: {
+          id: "kunafa",
+          name: "kunafa",
+          price: 35.0,
+          costPerCup: 14.05,
+          strawberriesPerCup: 8,
+          chocolatePerCup: 60,
+          kunafaPerCup: 30,
+        },
+        rocky: {
+          id: "rocky",
+          name: "rocky",
+          price: 55.0,
+          costPerCup: 50.0,
+          strawberriesPerCup: 0,
+          chocolatePerCup: 0,
+          kunafaPerCup: 0,
+        },
+        tips: {
+          id: "tips",
+          name: "tips",
+          price: 1.0,
+          costPerCup: 0.0,
+          strawberriesPerCup: 0,
+          chocolatePerCup: 0,
+          kunafaPerCup: 0,
+        },
+        cookies: {
+          id: "cookies",
+          name: "cookies",
+          price: 15.0,
+          costPerCup: 7.67,
+          strawberriesPerCup: 0,
+          chocolatePerCup: 0,
+          kunafaPerCup: 0,
+        },
+      },
+      sales: [
+        // {id, date, productId, qty, unitPrice}
+      ],
+      fixedCosts: [
+        // {id, name, amount}
+        { id: "fc1", name: "Kiosk / Booth", amount: 5650 },
+        { id: "fc2", name: "Fridge", amount: 1100 },
+        { id: "fc3", name: "Machinery / Equipment", amount: 3150 },
+        { id: "fc4", name: "Kiosk Delivery", amount: 450 },
+      ],
+      ingredients: {
+        cup: { name: "Cup", bulkWeight: 300, bulkCost: 61.5 },
+        chocolate: { name: "Chocolate", bulkWeight: 20000, bulkCost: 1570 },
+        kunafa: { name: "Pistachio Kunafa", bulkWeight: 2000, bulkCost: 130 },
+        sticks: { name: "Sticks", bulkWeight: 500, bulkCost: 21 },
+      },
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const parsed = JSON.parse(raw);
+        // basic merge to avoid missing fields if we update defaults later
+        return Object.assign(structuredClone(defaultState), parsed);
+      } catch (e) {
+        console.error("Failed to load state, using defaults", e);
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    // ---------- NAVIGATION ----------
+    const navButtons = document.querySelectorAll(".nav button");
+    navButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.view;
+        navButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document
+          .querySelectorAll("main section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .getElementById("view-" + view)
+          .classList.add("active");
+      });
+    });
+
+    // ---------- SALES ----------
+    const saleProductSelect = document.getElementById("saleProduct");
+    const salesTableBody = document.getElementById("salesTableBody");
+    const saleForm = document.getElementById("formSale");
+    const saleError = document.getElementById("saleError");
+
+    saleForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      saleError.textContent = "";
+      const date = document.getElementById("saleDate").value;
+      const productId = document.getElementById("saleProduct").value;
+      const qty = parseInt(document.getElementById("saleQty").value, 10);
+      const unitPrice = parseFloat(
+        document.getElementById("salePrice").value
+      );
+
+      if (!date || !productId || !qty || qty <= 0 || isNaN(unitPrice)) {
+        saleError.textContent = "Please fill all fields correctly.";
+        return;
+      }
+
+      state.sales.push({
+        id: "s" + Date.now() + Math.random().toString(16).slice(2),
+        date,
+        productId,
+        qty,
+        unitPrice,
+      });
+      saveState();
+      saleForm.reset();
+    });
+
+    function deleteSale(id) {
+      state.sales = state.sales.filter((s) => s.id !== id);
+      saveState();
+    }
+
+    // ---------- PRODUCTS ----------
+    const productsTableBody = document.getElementById("productsTableBody");
+    const posFeeInput = document.getElementById("posFee");
+    const btnSavePos = document.getElementById("btnSavePos");
+
+    btnSavePos.addEventListener("click", (e) => {
+      e.preventDefault();
+      const v = parseFloat(posFeeInput.value);
+      state.posFeePercent = !isNaN(v) && v >= 0 ? v : 0;
+      saveState();
+    });
+
+    function renderProducts() {
+      // populate select for sales form
+      saleProductSelect.innerHTML = "";
+      Object.values(state.products).forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        saleProductSelect.appendChild(opt);
+      });
+
+      // products table
+      productsTableBody.innerHTML = "";
+      Object.values(state.products).forEach((p) => {
+        const tr = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.textContent = p.name;
+        tr.appendChild(tdName);
+
+        function addNumberCell(key, step) {
+          const td = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "number";
+          input.step = step;
+          input.value = p[key];
+          input.style.width = "90px";
+          input.addEventListener("change", () => {
+            const v = parseFloat(input.value);
+            p[key] = isNaN(v) ? 0 : v;
+            saveState();
+          });
+          td.appendChild(input);
+          tr.appendChild(td);
+        }
+
+        addNumberCell("price", "0.01");
+        addNumberCell("costPerCup", "0.01");
+        addNumberCell("strawberriesPerCup", "1");
+        addNumberCell("chocolatePerCup", "0.1");
+        addNumberCell("kunafaPerCup", "0.1");
+
+        productsTableBody.appendChild(tr);
+      });
+
+      posFeeInput.value = state.posFeePercent;
+    }
+
+    // ---------- FIXED COSTS ----------
+    const fixedTableBody = document.getElementById("fixedTableBody");
+    const fixedTotalEl = document.getElementById("fixedTotal");
+    const fixedForm = document.getElementById("formFixed");
+
+    fixedForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("fixedName").value.trim();
+      const amount = parseFloat(
+        document.getElementById("fixedAmount").value
+      );
+      if (!name || isNaN(amount)) return;
+      state.fixedCosts.push({
+        id: "f" + Date.now() + Math.random().toString(16).slice(2),
+        name,
+        amount,
+      });
+      saveState();
+      fixedForm.reset();
+    });
+
+    function deleteFixed(id) {
+      state.fixedCosts = state.fixedCosts.filter((f) => f.id !== id);
+      saveState();
+    }
+
+    function renderFixed() {
+      fixedTableBody.innerHTML = "";
+      let total = 0;
+      state.fixedCosts.forEach((f, idx) => {
+        total += Number(f.amount) || 0;
+        const tr = document.createElement("tr");
+
+        const tdIdx = document.createElement("td");
+        tdIdx.textContent = idx + 1;
+        tr.appendChild(tdIdx);
+
+        const tdName = document.createElement("td");
+        tdName.textContent = f.name;
+        tr.appendChild(tdName);
+
+        const tdAmt = document.createElement("td");
+        tdAmt.textContent = formatCurrency(f.amount);
+        tr.appendChild(tdAmt);
+
+        const tdDel = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.className = "btn btn-danger";
+        btn.textContent = "✕";
+        btn.style.padding = "3px 8px";
+        btn.addEventListener("click", () => deleteFixed(f.id));
+        tdDel.appendChild(btn);
+        tr.appendChild(tdDel);
+
+        fixedTableBody.appendChild(tr);
+      });
+      fixedTotalEl.textContent = formatCurrency(total);
+    }
+
+    // ---------- INGREDIENTS ----------
+    const ingredientsTableBody = document.getElementById(
+      "ingredientsTableBody"
+    );
+
+    function renderIngredients() {
+      ingredientsTableBody.innerHTML = "";
+      Object.values(state.ingredients).forEach((ing) => {
+        const tr = document.createElement("tr");
+        const tdName = document.createElement("td");
+        tdName.textContent = ing.name;
+        tr.appendChild(tdName);
+
+        function addInput(key) {
+          const td = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "number";
+          input.step = "0.01";
+          input.value = ing[key] ?? "";
+          input.style.width = "100px";
+          input.addEventListener("change", () => {
+            const v = parseFloat(input.value);
+            ing[key] = isNaN(v) ? 0 : v;
+            saveState();
+          });
+          td.appendChild(input);
+          tr.appendChild(td);
+        }
+
+        addInput("bulkWeight");
+        addInput("bulkCost");
+
+        // cost per gram (readonly)
+        const tdCostGram = document.createElement("td");
+        const costPerGram =
+          ing.bulkWeight && ing.bulkCost
+            ? ing.bulkCost / ing.bulkWeight
+            : 0;
+        tdCostGram.textContent = formatCurrency(costPerGram);
+        tr.appendChild(tdCostGram);
+
+        ingredientsTableBody.appendChild(tr);
+      });
+    }
+
+    // ---------- DASHBOARD & SALES TABLE ----------
+    function renderSales() {
+      salesTableBody.innerHTML = "";
+      const products = state.products;
+      state.sales
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .forEach((s, idx) => {
+          const p = products[s.productId];
+          const revenue = s.qty * s.unitPrice;
+          const costCup = p ? p.costPerCup : 0;
+          const varCost = costCup * s.qty;
+          const profit = revenue - varCost;
+          const tr = document.createElement("tr");
+
+          const tdIdx = document.createElement("td");
+          tdIdx.textContent = idx + 1;
+          tr.appendChild(tdIdx);
+
+          const tdDate = document.createElement("td");
+          tdDate.textContent = s.date;
+          tr.appendChild(tdDate);
+
+          const tdProd = document.createElement("td");
+          tdProd.textContent = p ? p.name : s.productId;
+          tr.appendChild(tdProd);
+
+          const tdQty = document.createElement("td");
+          tdQty.textContent = s.qty;
+          tr.appendChild(tdQty);
+
+          const tdPrice = document.createElement("td");
+          tdPrice.textContent = formatCurrency(s.unitPrice);
+          tr.appendChild(tdPrice);
+
+          const tdRev = document.createElement("td");
+          tdRev.textContent = formatCurrency(revenue);
+          tr.appendChild(tdRev);
+
+          const tdVar = document.createElement("td");
+          tdVar.textContent = formatCurrency(varCost);
+          tr.appendChild(tdVar);
+
+          const tdProf = document.createElement("td");
+          tdProf.textContent = formatCurrency(profit);
+          tr.appendChild(tdProf);
+
+          const tdDel = document.createElement("td");
+          const btn = document.createElement("button");
+          btn.className = "btn btn-danger";
+          btn.textContent = "✕";
+          btn.style.padding = "3px 8px";
+          btn.addEventListener("click", () => deleteSale(s.id));
+          tdDel.appendChild(btn);
+          tr.appendChild(tdDel);
+
+          salesTableBody.appendChild(tr);
+        });
+    }
+
+    function renderDashboard() {
+      const products = state.products;
+
+      let totalRevenue = 0;
+      let totalVarCost = 0;
+      let totalCups = 0;
+      let strawberriesUsed = 0;
+      let chocolateUsed = 0;
+      let kunafaUsed = 0;
+
+      state.sales.forEach((s) => {
+        const p = products[s.productId];
+        if (!p) return;
+        const revenue = s.qty * s.unitPrice;
+        const varCost = s.qty * p.costPerCup;
+
+        totalRevenue += revenue;
+        totalVarCost += varCost;
+        totalCups += s.qty;
+
+        strawberriesUsed += s.qty * (p.strawberriesPerCup || 0);
+        chocolateUsed += s.qty * (p.chocolatePerCup || 0);
+        kunafaUsed += s.qty * (p.kunafaPerCup || 0);
+      });
+
+      const posFees = (state.posFeePercent / 100) * totalRevenue;
+      const profitBeforeFixed = totalRevenue - totalVarCost - posFees;
+      const fixedTotal = state.fixedCosts.reduce(
+        (sum, f) => sum + (Number(f.amount) || 0),
+        0
+      );
+      const netAfterFixed = profitBeforeFixed - fixedTotal;
+      const remainingToBreakeven =
+        netAfterFixed >= 0 ? 0 : Math.abs(netAfterFixed);
+
+      document.getElementById("dashTotalRevenue").textContent =
+        formatCurrency(totalRevenue);
+      document.getElementById("dashTotalVar").textContent =
+        formatCurrency(totalVarCost);
+      document.getElementById("dashPosFees").textContent =
+        formatCurrency(posFees);
+      document.getElementById("dashProfit").textContent =
+        formatCurrency(profitBeforeFixed);
+
+      document.getElementById("dashFixed").textContent =
+        formatCurrency(fixedTotal);
+      document.getElementById("dashNet").textContent =
+        formatCurrency(netAfterFixed);
+      document.getElementById("dashCups").textContent =
+        totalCups + " cups";
+      document.getElementById("dashBreakeven").textContent =
+        formatCurrency(remainingToBreakeven);
+      document.getElementById("dashPosRate").textContent =
+        (state.posFeePercent || 0).toFixed(2) + "%";
+
+      document.getElementById("dashStraw").textContent =
+        strawberriesUsed.toLocaleString() + " g";
+      document.getElementById("dashChoc").textContent =
+        chocolateUsed.toLocaleString() + " g";
+      document.getElementById("dashKuna").textContent =
+        kunafaUsed.toLocaleString() + " g";
+    }
+
+    function formatCurrency(v) {
+      v = Number(v) || 0;
+      return v.toLocaleString("en-AE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + " AED";
+    }
+
+    function renderAll() {
+      renderProducts();
+      renderFixed();
+      renderIngredients();
+      renderSales();
+      renderDashboard();
+    }
+
+    // ---------- RESET ----------
+    document.getElementById("btnReset").addEventListener("click", () => {
+      if (
+        confirm(
+          "This will erase all saved data (sales, costs) from this browser. Continue?"
+        )
+      ) {
+        state = structuredClone(defaultState);
+        saveState();
+      }
+    });
+
+    // ---------- INITIAL RENDER ----------
+    renderAll();
+  </script>
+</body>
+</html>
