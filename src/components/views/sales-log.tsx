@@ -268,6 +268,15 @@ export function SalesLog() {
   // Reverse for display (newest first)
   const displaySales = [...filteredSales].reverse();
   
+  // Count items per transaction to identify multi-item transactions
+  const transactionCounts = new Map<string, number>();
+  displaySales.forEach((row) => {
+    if (row.transactionKey && row.sale.source === 'pos') {
+      const count = transactionCounts.get(row.transactionKey) || 0;
+      transactionCounts.set(row.transactionKey, count + 1);
+    }
+  });
+  
   // Track which transactions we've seen to identify first item in each transaction
   const seenTransactions = new Set<string>();
 
@@ -481,15 +490,15 @@ export function SalesLog() {
                 </TableHeader>
                 <TableBody>
                   {displaySales.map((row, displayIndex) => {
-                    // Check if this is part of a transaction group
-                    const isInTransaction = row.transactionKey && row.sale.source === 'pos';
-                    const isFirstInGroup = isInTransaction && !seenTransactions.has(row.transactionKey!);
+                    // Check if this is part of a multi-item transaction group
+                    const transactionRowCount = row.transactionKey && row.sale.source === 'pos'
+                      ? transactionCounts.get(row.transactionKey) || 0
+                      : 0;
+                    const isMultiItemTransaction = transactionRowCount > 1;
+                    const isFirstInGroup = isMultiItemTransaction && !seenTransactions.has(row.transactionKey!);
                     if (isFirstInGroup) {
                       seenTransactions.add(row.transactionKey!);
                     }
-                    const transactionRowCount = isInTransaction 
-                      ? displaySales.filter(r => r.transactionKey === row.transactionKey).length 
-                      : 0;
                     
                     return (
                     <TableRow 
@@ -497,13 +506,13 @@ export function SalesLog() {
                       className={`transition-colors ${
                         row.isBreakeven ? 'bg-green-50/50 dark:bg-green-950/20' : ''
                       } ${
-                        isInTransaction ? 'border-l-2 border-l-emerald-400 dark:border-l-emerald-600' : ''
+                        isMultiItemTransaction ? 'border-l-2 border-l-emerald-400 dark:border-l-emerald-600' : ''
                       } ${
                         isFirstInGroup ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : ''
                       }`}
                     >
                       <TableCell className="text-muted-foreground text-xs">
-                        {isFirstInGroup && transactionRowCount > 1 ? (
+                        {isFirstInGroup ? (
                           <div className="flex flex-col items-center gap-0.5">
                             <span>{row.index}</span>
                             <span className="text-[8px] text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -525,7 +534,7 @@ export function SalesLog() {
                           <Badge variant="outline" className="text-xs gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
                             <Store className="h-3 w-3" />
                             POS
-                            {isFirstInGroup && transactionRowCount > 1 && (
+                            {isFirstInGroup && (
                               <span className="ml-1 text-[10px]">({transactionRowCount})</span>
                             )}
                           </Badge>
