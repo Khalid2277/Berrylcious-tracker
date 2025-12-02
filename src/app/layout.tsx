@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { DM_Sans, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { AuthProvider } from '@/contexts/auth-context';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
@@ -67,15 +68,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${dmSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-      >
-        {children}
-          <Toaster position="bottom-right" richColors closeButton />
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster position="bottom-right" richColors closeButton />
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

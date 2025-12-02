@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { RouteGuard } from '@/components/auth/route-guard';
+import { useAuth } from '@/contexts/auth-context';
 import { useAppState } from '@/hooks/use-app-state';
 import { toast } from '@/components/ui/sonner';
-import { ShoppingCart, Plus, Minus, Trash2, Send, Cherry, Cookie, Candy, Moon, Sun } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Send, Cherry, Cookie, Candy, Moon, Sun, LogOut } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTheme } from 'next-themes';
 
@@ -18,8 +21,15 @@ interface OrderItem {
 
 export default function POSPage() {
   const { state, addSale, isLoaded } = useAppState();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [order, setOrder] = useState<OrderItem[]>([]);
   const { theme, setTheme } = useTheme();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   if (!isLoaded) {
     return (
@@ -140,7 +150,8 @@ export default function POSPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <RouteGuard>
+      <div className="min-h-screen bg-background flex flex-col">
       {/* Header - Fixed */}
       <div className="p-4 pb-2">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
@@ -149,15 +160,31 @@ export default function POSPage() {
               <span className="text-2xl">🍓</span> Berrylicious
             </h1>
             <p className="text-muted-foreground text-sm">Tap products to add</p>
+            {user && (
+              <p className="text-xs text-muted-foreground/70 mt-0.5">
+                Signed in as {user.name}
+              </p>
+            )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="rounded-full"
-          >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="rounded-full"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="rounded-full"
+              title="Sign Out"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -287,5 +314,6 @@ export default function POSPage() {
         </div>
       </div>
     </div>
+    </RouteGuard>
   );
 }

@@ -10,8 +10,12 @@ import {
   Cherry,
   Store,
   ExternalLink,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
+import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
@@ -58,6 +62,14 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <Sidebar className="border-r-0 bg-sidebar">
       <SidebarHeader className="p-5 pb-6">
@@ -123,6 +135,21 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </div>
           <ExternalLink className="h-4 w-4 opacity-70" />
         </Link>
+        <div className="space-y-2">
+          {user && (
+            <div className="px-3 py-2 text-xs text-sidebar-foreground/60">
+              Signed in as <span className="font-medium text-sidebar-foreground/80">{user.name}</span>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
         <p className="text-[10px] text-sidebar-foreground/30 text-center">
           Berrylicious Dashboard v1.0
         </p>

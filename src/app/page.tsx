@@ -11,6 +11,7 @@ import { FixedCostsView } from '@/components/views/fixed-costs';
 import { IngredientsView } from '@/components/views/ingredients';
 import { TransactionClassifier } from '@/components/views/transaction-classifier';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { RouteGuard } from '@/components/auth/route-guard';
 import { useAppState } from '@/hooks/use-app-state';
 import { DashboardSkeleton, PageSkeleton } from '@/components/ui/loading-skeleton';
 import { Cloud, CloudOff } from 'lucide-react';
@@ -81,7 +82,8 @@ export default function Home() {
   const pageInfo = getPageTitle();
 
   return (
-    <SidebarProvider>
+    <RouteGuard requiredRole="owner">
+      <SidebarProvider>
       <AppSidebar activeView={activeView} onViewChange={setActiveView} />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 bg-background/80 backdrop-blur-sm border-b border-border/50">
@@ -128,5 +130,6 @@ export default function Home() {
         </main>
       </SidebarInset>
     </SidebarProvider>
+    </RouteGuard>
   );
 }

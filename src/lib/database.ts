@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import bcrypt from 'bcryptjs';
 import type { 
   Product, 
   Sale, 
@@ -707,6 +708,76 @@ export async function deleteWasteEntry(id: string): Promise<boolean> {
 // ============================================
 // LOAD ALL DATA
 // ============================================
+
+// ============================================
+// AUTHENTICATION
+// ============================================
+
+export interface DatabaseUser {
+  id: string;
+  username: string;
+  role: 'owner' | 'seller';
+  name: string;
+}
+
+export async function authenticateUser(username: string, password: string): Promise<DatabaseUser | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, password_hash, role, name')
+      .eq('username', username)
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    // Compare password with bcrypt hash
+    const isPasswordValid = await bcrypt.compare(password, data.password_hash);
+    
+    if (isPasswordValid) {
+      return {
+        id: data.id,
+        username: data.username,
+        role: data.role as 'owner' | 'seller',
+        name: data.name,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error authenticating user:', error);
+    return null;
+  }
+}
+
+export async function getUserByUsername(username: string): Promise<DatabaseUser | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, role, name')
+      .eq('username', username)
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return {
+      id: data.id,
+      username: data.username,
+      role: data.role as 'owner' | 'seller',
+      name: data.name,
+    };
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}
 
 export async function loadAllData(): Promise<Partial<AppState> | null> {
   if (!isSupabaseConfigured()) return null;
