@@ -54,6 +54,9 @@ export function DashboardOverview() {
   const grossProfitCOGS = stats.totalRevenue - totalCOGS;
   const netProfitCOGS = grossProfitCOGS - stats.fixedTotal;
   const remainingToBreakevenCOGS = netProfitCOGS >= 0 ? 0 : Math.abs(netProfitCOGS);
+  
+  // Calculate amount left to cover fixed costs only
+  const remainingForFixedCosts = Math.max(0, stats.fixedTotal - grossProfitCOGS);
 
   // Calculate average profit per cup for strawberry products only (normal & kunafa)
   // Use COGS proportional to strawberry product sales
@@ -399,8 +402,8 @@ export function DashboardOverview() {
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1">
                     {remainingToBreakevenCOGS === 0 
-                      ? 'You have covered all your fixed costs!'
-                      : 'Amount needed to cover fixed costs'}
+                      ? 'You have covered all your costs!'
+                      : 'Amount needed to cover all costs'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -414,8 +417,23 @@ export function DashboardOverview() {
                   )}
                 </div>
               </div>
-              {remainingToBreakevenCOGS > 0 && avgProfitPerStrawberryCup > 0 && (
+              {/* Amount left to cover fixed costs */}
+              {remainingForFixedCosts > 0 && (
                 <div className="mt-3 pt-3 border-t border-amber-300/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Amount left to cover fixed costs</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                        {formatCurrency(remainingForFixedCosts)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {remainingToBreakevenCOGS > 0 && avgProfitPerStrawberryCup > 0 && (
+                <div className={`mt-3 pt-3 border-t border-amber-300/50 ${remainingForFixedCosts > 0 ? '' : 'mt-0 pt-0 border-0'}`}>
                   <div className="flex justify-between text-sm">
                     <span>Avg profit per cup (Strawberry products)</span>
                     <span>{formatCurrency(avgProfitPerStrawberryCup)}</span>

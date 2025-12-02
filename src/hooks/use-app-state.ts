@@ -106,6 +106,7 @@ const defaultState: AppState = {
   ingredientBatches: [],
   strawberryBatches: [],
   wasteEntries: [],
+  manualInventoryAdjustments: {},
 };
 
 export function useAppState() {
@@ -162,6 +163,7 @@ export function useAppState() {
             useManualPosFee: parsed.useManualPosFee ?? false,
             ingredients: { ...defaultIngredients, ...parsed.ingredients },
             products: mergedProducts,
+            manualInventoryAdjustments: parsed.manualInventoryAdjustments ?? {},
           });
         }
         console.log('Using localStorage (Supabase not configured)');
@@ -638,13 +640,18 @@ export function useAppState() {
       ? strawberryCost / strawberryPurchased 
       : (strawberryIng?.defaultBulkQty > 0 ? strawberryIng.defaultBulkCost / strawberryIng.defaultBulkQty : 0);
     
+    const calculatedStrawberryRemaining = strawberryPurchased - usage.strawberriesG - strawberryWasted;
+    const strawberryRemaining = state.manualInventoryAdjustments['strawberry'] !== undefined
+      ? state.manualInventoryAdjustments['strawberry']
+      : calculatedStrawberryRemaining;
+    
     inventory.push({
       ingredientId: 'strawberry',
       name: 'Strawberry',
       totalPurchased: strawberryPurchased,
       totalUsed: usage.strawberriesG,
       totalWasted: strawberryWasted,
-      remaining: strawberryPurchased - usage.strawberriesG - strawberryWasted,
+      remaining: strawberryRemaining,
       unit: 'g',
       totalCost: strawberryCost,
       costPerUnit: strawberryCostPerUnit,
@@ -673,13 +680,18 @@ export function useAppState() {
         ? cost / purchased 
         : (ing.defaultBulkQty > 0 ? ing.defaultBulkCost / ing.defaultBulkQty : 0);
 
+      const calculatedRemaining = purchased - used - wasted;
+      const remaining = state.manualInventoryAdjustments[id] !== undefined
+        ? state.manualInventoryAdjustments[id]
+        : calculatedRemaining;
+
       inventory.push({
         ingredientId: id,
         name: ing.name,
         totalPurchased: purchased,
         totalUsed: used,
         totalWasted: wasted,
-        remaining: purchased - used - wasted,
+        remaining: remaining,
         unit: ing.unit,
         totalCost: cost,
         costPerUnit: costPerUnit,
@@ -687,7 +699,7 @@ export function useAppState() {
     });
 
     return inventory;
-  }, [state.ingredients, state.ingredientBatches, state.strawberryBatches, state.wasteEntries, calculateIngredientUsage]);
+  }, [state.ingredients, state.ingredientBatches, state.strawberryBatches, state.wasteEntries, state.manualInventoryAdjustments, calculateIngredientUsage]);
 
   const calculateDashboardStats = useCallback((): DashboardStats => {
     let grossRevenue = 0;
@@ -802,6 +814,33 @@ export function useAppState() {
     }).format(amount) + ' AED';
   }, []);
 
+  // ============================================
+  // MANUAL INVENTORY ADJUSTMENTS
+  // ============================================
+
+  const updateManualInventory = useCallback(async (ingredientId: string, remaining: number | null) => {
+    let newAdjustments: Record<string, number> = {};
+    
+    setState(prev => {
+      newAdjustments = { ...prev.manualInventoryAdjustments };
+      if (remaining === null || remaining === undefined) {
+        // Remove manual adjustment to use calculated value
+        delete newAdjustments[ingredientId];
+      } else {
+        newAdjustments[ingredientId] = remaining;
+      }
+      return {
+        ...prev,
+        manualInventoryAdjustments: newAdjustments,
+      };
+    });
+
+    if (useSupabase) {
+      // Store manual adjustments in settings
+      await db.updateSetting('manual_inventory_adjustments', JSON.stringify(newAdjustments));
+    }
+  }, [useSupabase]);
+
   return {
     state,
     isLoaded,
@@ -844,6 +883,8 @@ export function useAppState() {
     calculateInventory,
     calculateDashboardStats,
     formatCurrency,
+    // Manual Inventory
+    updateManualInventory,
     // Reset
     resetAllData,
   };

@@ -86,6 +86,9 @@ export interface AppState {
   ingredientBatches: IngredientBatch[];
   strawberryBatches: StrawberryBatch[];
   wasteEntries: WasteEntry[];
+  // Manual inventory adjustments (ingredientId -> manual remaining amount)
+  // If set, this overrides the calculated remaining amount
+  manualInventoryAdjustments: Record<string, number>;
 }
 
 export interface ProductCombo {

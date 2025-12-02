@@ -23,6 +23,7 @@ export async function getSettings(): Promise<{
   posFeePercent: number;
   posFeeManual: number;
   useManualPosFee: boolean;
+  manualInventoryAdjustments: Record<string, number>;
 } | null> {
   if (!isSupabaseConfigured()) return null;
 
@@ -43,10 +44,21 @@ export async function getSettings(): Promise<{
       }
     }
 
+  let manualInventoryAdjustments: Record<string, number> = {};
+  try {
+    if (settings.manual_inventory_adjustments) {
+      manualInventoryAdjustments = JSON.parse(settings.manual_inventory_adjustments);
+    }
+  } catch {
+    // If parsing fails, use empty object
+    manualInventoryAdjustments = {};
+  }
+
   return {
     posFeePercent: parseFloat(settings.pos_fee_percent || '0'),
     posFeeManual: parseFloat(settings.pos_fee_manual || '0'),
     useManualPosFee: settings.use_manual_pos_fee === 'true',
+    manualInventoryAdjustments,
   };
   } catch {
     return null;
@@ -820,6 +832,7 @@ export async function loadAllData(): Promise<Partial<AppState> | null> {
       ingredientBatches,
       strawberryBatches,
       wasteEntries,
+      manualInventoryAdjustments: settings?.manualInventoryAdjustments || {},
     };
   } catch (error) {
     console.error('Error loading data from Supabase:', error);

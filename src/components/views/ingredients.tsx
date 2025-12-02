@@ -36,7 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppState } from '@/hooks/use-app-state';
 import { toast } from '@/components/ui/sonner';
 import { PageSkeleton } from '@/components/ui/loading-skeleton';
-import { Beef, Plus, Trash2, Package, AlertTriangle, Cherry, Download } from 'lucide-react';
+import { Beef, Plus, Trash2, Package, AlertTriangle, Cherry, Download, Edit2, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function IngredientsView() {
@@ -50,6 +50,7 @@ export function IngredientsView() {
     deleteStrawberryBatch,
     getActiveStrawberryBatch,
     calculateInventory,
+    updateManualInventory,
     formatCurrency, 
     isLoaded 
   } = useAppState();
@@ -73,6 +74,10 @@ export function IngredientsView() {
   const [sbWeightKg, setSbWeightKg] = useState('');
   const [sbCost, setSbCost] = useState('');
   const [sbAvgWeight, setSbAvgWeight] = useState('20');
+
+  // Manual inventory editing
+  const [editingInventory, setEditingInventory] = useState<string | null>(null);
+  const [manualInventoryValue, setManualInventoryValue] = useState('');
 
   if (!isLoaded) {
     return <PageSkeleton />;
@@ -319,12 +324,97 @@ export function IngredientsView() {
                           </div>
                         )}
                         <div className="border-t pt-2">
-                          <div className="flex justify-between text-sm font-medium">
-                            <span>Remaining</span>
-                            <span className={isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-green-600'}>
-                              {inv.remaining.toLocaleString()} {inv.unit}
-                            </span>
-                          </div>
+                          {editingInventory === inv.ingredientId ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={manualInventoryValue}
+                                  onChange={(e) => setManualInventoryValue(e.target.value)}
+                                  placeholder={inv.remaining.toLocaleString()}
+                                  className="flex-1 text-sm"
+                                  autoFocus
+                                />
+                                <span className="text-xs text-muted-foreground shrink-0">{inv.unit}</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="flex-1 text-xs h-7"
+                                  onClick={async () => {
+                                    const value = parseFloat(manualInventoryValue);
+                                    if (!isNaN(value)) {
+                                      await updateManualInventory(inv.ingredientId, value);
+                                      toast.success('Inventory updated', {
+                                        description: `${inv.name} remaining set to ${value.toLocaleString()} ${inv.unit}`,
+                                      });
+                                    }
+                                    setEditingInventory(null);
+                                    setManualInventoryValue('');
+                                  }}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs h-7"
+                                  onClick={() => {
+                                    setEditingInventory(null);
+                                    setManualInventoryValue('');
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="w-full text-xs h-6 text-muted-foreground"
+                                onClick={async () => {
+                                  await updateManualInventory(inv.ingredientId, null);
+                                  toast.success('Reset to calculated', {
+                                    description: `${inv.name} will use calculated remaining amount`,
+                                  });
+                                  setEditingInventory(null);
+                                  setManualInventoryValue('');
+                                }}
+                              >
+                                Reset to calculated
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">Remaining</span>
+                                  {state.manualInventoryAdjustments[inv.ingredientId] !== undefined && (
+                                    <Badge variant="secondary" className="text-xs">Manual</Badge>
+                                  )}
+                                </div>
+                                <span className={`text-sm font-medium ${isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-green-600'}`}>
+                                  {inv.remaining.toLocaleString()} {inv.unit}
+                                </span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 shrink-0"
+                                onClick={() => {
+                                  setEditingInventory(inv.ingredientId);
+                                  setManualInventoryValue(
+                                    state.manualInventoryAdjustments[inv.ingredientId]?.toString() || 
+                                    inv.remaining.toString()
+                                  );
+                                }}
+                                title="Edit remaining inventory"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                         {inv.costPerUnit > 0 && (
                           <div className="text-xs text-muted-foreground">
