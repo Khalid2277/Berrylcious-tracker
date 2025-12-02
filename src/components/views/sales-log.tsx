@@ -354,84 +354,39 @@ export function SalesLog() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10">#</TableHead>
+                    <TableHead className="w-8">#</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Product</TableHead>
-                    <TableHead className="text-right">Cups</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
                     <TableHead className="text-right">Revenue</TableHead>
-                    <TableHead className="text-right">Cost/Cup</TableHead>
-                    <TableHead className="text-right">Var. Cost</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
                     <TableHead className="text-right">Profit</TableHead>
-                    <TableHead className="text-right">Cum. Profit</TableHead>
-                    <TableHead className="text-right">Net (Fixed)</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">To Break-even</TableHead>
-                    <TableHead className="text-right">🍓 g</TableHead>
-                    <TableHead className="text-right">🍫 g</TableHead>
-                    <TableHead className="text-right">Kunafa g</TableHead>
+                    <TableHead className="text-right">Breakeven</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displaySales.map((row) => (
                     <TableRow key={row.sale.id} className={`transition-colors ${row.isBreakeven ? 'bg-green-50/50 dark:bg-green-950/20' : ''}`}>
-                      <TableCell className="text-muted-foreground">{row.index}</TableCell>
-                      <TableCell className="font-medium">{row.sale.date}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">{row.index}</TableCell>
+                      <TableCell className="font-medium text-sm">{row.sale.date}</TableCell>
                       <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <Badge variant="secondary" className="w-fit bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300">
-                            {row.product?.name || row.sale.productId}
-                          </Badge>
-                          {row.product?.useManualCost && (
-                            <span className="text-[10px] text-orange-600">Manual cost</span>
-                          )}
-                        </div>
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                          {row.product?.name || row.sale.productId}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="text-right">{row.sale.qty}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(row.sale.unitPrice)}</TableCell>
-                      <TableCell className="text-right font-medium text-green-600">
+                      <TableCell className="text-right text-sm">{row.sale.qty}</TableCell>
+                      <TableCell className="text-right font-medium text-green-600 text-sm">
                         {formatCurrency(row.revenue)}
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground text-xs">
-                        {formatCurrency(row.costPerCup)}
-                      </TableCell>
-                      <TableCell className="text-right text-red-600">
+                      <TableCell className="text-right text-red-600 text-sm">
                         {formatCurrency(row.varCost)}
                       </TableCell>
-                      <TableCell className={`text-right font-medium ${row.profitBeforeFixed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <TableCell className={`text-right font-medium text-sm ${row.profitBeforeFixed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(row.profitBeforeFixed)}
                       </TableCell>
-                      <TableCell className={`text-right ${row.cumulativeProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(row.cumulativeProfit)}
-                      </TableCell>
-                      <TableCell className={`text-right font-medium ${row.netAfterFixed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(row.netAfterFixed)}
-                      </TableCell>
-                      <TableCell>
-                        {row.isBreakeven ? (
-                          <Badge className="bg-green-500 flex items-center gap-1 w-fit">
-                            <TrendingUp className="h-3 w-3" />
-                            Break-even
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive" className="flex items-center gap-1 w-fit">
-                            <TrendingDown className="h-3 w-3" />
-                            Below
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className={`text-right ${row.remainingToBreakeven > 0 ? 'text-amber-600' : 'text-green-600'}`}>
-                        {formatCurrency(row.remainingToBreakeven)}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground text-xs">
-                        {row.strawberryG > 0 ? row.strawberryG.toLocaleString() : '-'}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground text-xs">
-                        {row.chocolateG > 0 ? row.chocolateG.toLocaleString() : '-'}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground text-xs">
-                        {row.kunafaG > 0 ? row.kunafaG.toLocaleString() : '-'}
+                      <TableCell className={`text-right text-sm ${row.remainingToBreakeven > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                        {row.remainingToBreakeven > 0 ? formatCurrency(row.remainingToBreakeven) : '✓'}
                       </TableCell>
                       <TableCell>
                         <AlertDialog>

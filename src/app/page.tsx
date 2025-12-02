@@ -122,17 +122,6 @@ export default function Home() {
 
             {/* Theme Toggle */}
             <ThemeToggle />
-
-            {/* User Avatar - hidden on very small screens */}
-            <div className="hidden sm:flex items-center gap-2 pl-2 ml-1 sm:ml-2 border-l border-border">
-              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xs sm:text-sm font-medium text-primary">K</span>
-              </div>
-              <div className="hidden lg:block">
-                <p className="text-sm font-medium text-foreground">Khalid</p>
-                <p className="text-xs text-muted-foreground">Owner</p>
-              </div>
-            </div>
           </div>
         </header>
 
