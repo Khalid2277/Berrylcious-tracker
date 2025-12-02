@@ -202,21 +202,21 @@ export function SalesLog() {
     : 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/25">
-              <ShoppingBag className="h-5 w-5" />
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 sm:gap-3">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 text-primary">
+              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             Sales Log
           </h2>
-          <p className="text-muted-foreground mt-2">
-            Track daily sales with auto-calculated costs based on ingredient batches
+          <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
+            Track daily sales with auto-calculated costs
           </p>
         </div>
         {sortedSales.length > 0 && (
-          <Button variant="outline" onClick={exportToCSV} className="shrink-0">
+          <Button variant="outline" onClick={exportToCSV} className="shrink-0 w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
@@ -225,15 +225,15 @@ export function SalesLog() {
 
       {/* Add Sale Form */}
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-rose-50/80 to-pink-50/80 dark:from-rose-950/30 dark:to-pink-950/30">
-          <CardTitle className="text-base flex items-center gap-2">
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add New Sale
           </CardTitle>
-          <CardDescription>Record a new sale - costs use ingredient batch prices from the sale date</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">Record a new sale - costs use batch prices from sale date</CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-5">
+        <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+          <form onSubmit={handleSubmit} className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-5">
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
@@ -287,8 +287,8 @@ export function SalesLog() {
                 required
               />
             </div>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40">
+            <div className="flex items-end col-span-2 md:col-span-1">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 transition-all">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Sale
               </Button>

@@ -124,20 +124,20 @@ export function DashboardOverview() {
       </div>
 
       {/* Main Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {revenueCards.map((card, index) => (
           <Card 
             key={card.title} 
             className="transition-all hover:shadow-md"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`h-10 w-10 rounded-xl ${card.iconBg} flex items-center justify-center`}>
-                  <card.icon className={`h-5 w-5 ${card.iconColor}`} />
+            <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${card.iconBg} flex items-center justify-center`}>
+                  <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.iconColor}`} />
                 </div>
                 {card.change && (
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                  <span className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full hidden sm:inline-block ${
                     card.changePositive 
                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
                       : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
@@ -146,44 +146,44 @@ export function DashboardOverview() {
                   </span>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground mb-1">{card.title}</p>
-              <div className={`text-2xl font-bold ${card.valueColor}`}>{card.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 truncate">{card.title}</p>
+              <div className={`text-lg sm:text-xl md:text-2xl font-bold ${card.valueColor} truncate`}>{card.value}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate hidden sm:block">{card.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Extra Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card 
           className="cursor-pointer hover:shadow-md transition-all"
           onClick={() => setCostDialogOpen(true)}
         >
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Calculator className="h-5 w-5 text-primary" />
+          <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center">
+                <Calculator className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-              <Info className="h-4 w-4 text-muted-foreground" />
+              <Info className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground mb-1">Total Costs</p>
-            <div className="text-2xl font-bold">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1">Total Costs</p>
+            <div className="text-lg sm:text-xl md:text-2xl font-bold">
               {formatCurrency(stats.fixedTotal + stats.totalVarCost)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Fixed + Variable • Click for details</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Fixed + Variable • Tap for details</p>
           </CardContent>
         </Card>
         {stats.totalWasteCost > 0 && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-1">Waste Cost</p>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1">Waste Cost</p>
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
                 -{formatCurrency(stats.totalWasteCost)}
               </div>
             </CardContent>
@@ -192,18 +192,18 @@ export function DashboardOverview() {
 
         {/* Breakeven Card */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`h-10 w-10 rounded-xl ${stats.remainingToBreakeven === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'} flex items-center justify-center`}>
-                <Target className={`h-5 w-5 ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
+          <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${stats.remainingToBreakeven === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'} flex items-center justify-center`}>
+                <Target className={`h-4 w-4 sm:h-5 sm:w-5 ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-1">To Break-even</p>
-            <div className={`text-2xl font-bold ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1">To Break-even</p>
+            <div className={`text-lg sm:text-xl md:text-2xl font-bold ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {stats.remainingToBreakeven === 0 ? '✓ Achieved!' : formatCurrency(stats.remainingToBreakeven)}
             </div>
             {stats.remainingToBreakeven > 0 && avgProfitPerStrawberryCup > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                 ~{Math.ceil(stats.remainingToBreakeven / avgProfitPerStrawberryCup)} cups to go
               </p>
             )}
@@ -420,7 +420,7 @@ export function DashboardOverview() {
 
       {/* Charts */}
       {(salesByProduct.length > 0 || salesOverTime.length > 0) && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 lg:grid-cols-2">
           {salesByProduct.length > 0 && (
             <DashboardChart
               title="Sales by Product"
