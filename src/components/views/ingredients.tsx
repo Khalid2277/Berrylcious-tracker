@@ -203,16 +203,16 @@ export function IngredientsView() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+      <div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 sm:gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25">
-              <Beef className="h-5 w-5" />
-            </div>
-            Ingredients & Inventory
-          </h2>
-          <p className="text-muted-foreground mt-2">
-            Manage ingredients, track batches, and monitor inventory levels
-          </p>
+            <Beef className="h-5 w-5" />
+          </div>
+          Ingredients & Inventory
+        </h2>
+        <p className="text-muted-foreground mt-2">
+          Manage ingredients, track batches, and monitor inventory levels
+        </p>
         </div>
         <Button variant="outline" onClick={exportInventoryToCSV} className="shrink-0">
           <Download className="h-4 w-4 mr-2" />
@@ -433,48 +433,48 @@ export function IngredientsView() {
                 </div>
               ) : (
                 <div className="overflow-x-auto scrollbar-thin">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Batch Name</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Weight (kg)</TableHead>
-                        <TableHead className="text-right">Weight (g)</TableHead>
-                        <TableHead className="text-right">Cost (AED)</TableHead>
-                        <TableHead className="text-right">Avg Weight/pc (g)</TableHead>
-                        <TableHead className="text-right">Cost/gram</TableHead>
-                        <TableHead className="text-right">Cost/strawberry</TableHead>
-                        <TableHead className="w-12"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {state.strawberryBatches.map((batch, index) => {
-                        const isActive = index === state.strawberryBatches.length - 1;
-                        return (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Batch Name</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Weight (kg)</TableHead>
+                      <TableHead className="text-right">Weight (g)</TableHead>
+                      <TableHead className="text-right">Cost (AED)</TableHead>
+                      <TableHead className="text-right">Avg Weight/pc (g)</TableHead>
+                      <TableHead className="text-right">Cost/gram</TableHead>
+                      <TableHead className="text-right">Cost/strawberry</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {state.strawberryBatches.map((batch, index) => {
+                      const isActive = index === state.strawberryBatches.length - 1;
+                      return (
                           <TableRow key={batch.id} className={`transition-colors ${isActive ? 'bg-rose-50 dark:bg-rose-950/30' : ''}`}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {batch.name}
-                                {isActive && <Badge className="bg-rose-500">Active</Badge>}
-                              </div>
-                            </TableCell>
-                            <TableCell>{batch.date}</TableCell>
-                            <TableCell className="text-right">{batch.bulkWeightKg}</TableCell>
-                            <TableCell className="text-right">{batch.bulkWeightG.toLocaleString()}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(batch.bulkCost)}</TableCell>
-                            <TableCell className="text-right">{batch.avgWeightPerStrawberry}</TableCell>
-                            <TableCell className="text-right font-mono text-sm">{batch.costPerGram.toFixed(4)}</TableCell>
-                            <TableCell className="text-right font-medium">{formatCurrency(batch.costPerStrawberry)}</TableCell>
-                            <TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {batch.name}
+                              {isActive && <Badge className="bg-rose-500">Active</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell>{batch.date}</TableCell>
+                          <TableCell className="text-right">{batch.bulkWeightKg}</TableCell>
+                          <TableCell className="text-right">{batch.bulkWeightG.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(batch.bulkCost)}</TableCell>
+                          <TableCell className="text-right">{batch.avgWeightPerStrawberry}</TableCell>
+                          <TableCell className="text-right font-mono text-sm">{batch.costPerGram.toFixed(4)}</TableCell>
+                          <TableCell className="text-right font-medium">{formatCurrency(batch.costPerStrawberry)}</TableCell>
+                          <TableCell>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
+                            <Button
+                              variant="ghost"
+                              size="icon"
                                     className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
@@ -494,12 +494,12 @@ export function IngredientsView() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
                 </div>
               )}
             </CardContent>
@@ -638,13 +638,13 @@ export function IngredientsView() {
                           <TableCell>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
+                            <Button
+                              variant="ghost"
+                              size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -785,13 +785,13 @@ export function IngredientsView() {
                           {!isBuiltIn && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
+                            <Button
+                              variant="ghost"
+                              size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>

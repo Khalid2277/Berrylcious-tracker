@@ -44,6 +44,7 @@ export function SalesLog() {
     addSale, 
     deleteSale, 
     calculateCostPerCup,
+    calculateInventory,
     getStrawberryBatchForDate,
     formatCurrency, 
     isLoaded 
@@ -231,7 +232,11 @@ export function SalesLog() {
   // Calculate totals for filtered view
   const filteredTotalRevenue = filteredSales.reduce((sum, s) => sum + s.netRevenue, 0);
   const filteredTotalPosFees = filteredSales.reduce((sum, s) => sum + s.autoPosFee, 0);
-  const filteredTotalCost = filteredSales.reduce((sum, s) => sum + s.varCost, 0);
+  
+  // Total Variable Cost = sum of all ingredient purchases (not COGS)
+  const inventory = calculateInventory();
+  const filteredTotalCost = inventory.reduce((sum, inv) => sum + inv.totalCost, 0);
+  
   const filteredTotalProfit = filteredSales.reduce((sum, s) => sum + s.profitBeforeFixed, 0);
 
   return (
@@ -372,11 +377,11 @@ export function SalesLog() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <CardTitle className="text-base">Sales History</CardTitle>
-              <CardDescription>
+          <CardTitle className="text-base">Sales History</CardTitle>
+          <CardDescription>
                 {displaySales.length} sale{displaySales.length !== 1 ? 's' : ''} 
                 {dateFilter !== 'all' && ` on ${dateFilter}`}
-              </CardDescription>
+          </CardDescription>
             </div>
             
             {/* Date Filter */}
@@ -434,8 +439,8 @@ export function SalesLog() {
                       <TableCell className="font-medium text-sm">{row.sale.date}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                          {row.product?.name || row.sale.productId}
-                        </Badge>
+                            {row.product?.name || row.sale.productId}
+                          </Badge>
                       </TableCell>
                       <TableCell>
                         {row.sale.source === 'pos' ? (

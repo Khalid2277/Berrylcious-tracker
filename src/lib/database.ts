@@ -26,27 +26,27 @@ export async function getSettings(): Promise<{
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('key, value');
+  const { data, error } = await supabase
+    .from('settings')
+    .select('key, value');
 
-    if (error) {
-      console.error('Error fetching settings:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching settings:', error);
+    return null;
+  }
 
-    const settings: Record<string, string> = {};
+  const settings: Record<string, string> = {};
     if (data) {
       for (const row of data) {
-        settings[row.key] = row.value;
+    settings[row.key] = row.value;
       }
     }
 
-    return {
-      posFeePercent: parseFloat(settings.pos_fee_percent || '0'),
-      posFeeManual: parseFloat(settings.pos_fee_manual || '0'),
-      useManualPosFee: settings.use_manual_pos_fee === 'true',
-    };
+  return {
+    posFeePercent: parseFloat(settings.pos_fee_percent || '0'),
+    posFeeManual: parseFloat(settings.pos_fee_manual || '0'),
+    useManualPosFee: settings.use_manual_pos_fee === 'true',
+  };
   } catch {
     return null;
   }
@@ -56,15 +56,15 @@ export async function updateSetting(key: string, value: string | number | boolea
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('settings')
-      .upsert({ key, value: String(value) }, { onConflict: 'key' });
+  const { error } = await supabase
+    .from('settings')
+    .upsert({ key, value: String(value) }, { onConflict: 'key' });
 
-    if (error) {
-      console.error('Error updating setting:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error updating setting:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -78,34 +78,34 @@ export async function getProducts(): Promise<Record<string, Product> | null> {
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*');
+  const { data, error } = await supabase
+    .from('products')
+    .select('*');
 
-    if (error) {
-      console.error('Error fetching products:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching products:', error);
+    return null;
+  }
 
-    const products: Record<string, Product> = {};
+  const products: Record<string, Product> = {};
     if (data) {
       for (const row of data) {
-        products[row.id] = {
-          id: row.id,
-          name: row.name,
-          price: row.price,
-          useManualCost: row.use_manual_cost,
-          manualCostPerCup: row.manual_cost_per_cup,
-          strawberriesPerCup: row.strawberries_per_cup,
-          chocolatePerCup: row.chocolate_per_cup,
-          kunafaPerCup: row.kunafa_per_cup,
-          cupsPerCup: row.cups_per_cup,
-          sticksPerCup: row.sticks_per_cup,
-        };
+    products[row.id] = {
+      id: row.id,
+      name: row.name,
+      price: row.price,
+      useManualCost: row.use_manual_cost,
+      manualCostPerCup: row.manual_cost_per_cup,
+      strawberriesPerCup: row.strawberries_per_cup,
+      chocolatePerCup: row.chocolate_per_cup,
+      kunafaPerCup: row.kunafa_per_cup,
+      cupsPerCup: row.cups_per_cup,
+      sticksPerCup: row.sticks_per_cup,
+    };
       }
     }
 
-    return products;
+  return products;
   } catch {
     return null;
   }
@@ -115,26 +115,26 @@ export async function upsertProduct(product: Product): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('products')
-      .upsert({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        use_manual_cost: product.useManualCost,
-        manual_cost_per_cup: product.manualCostPerCup || 0,
-        strawberries_per_cup: product.strawberriesPerCup,
-        chocolate_per_cup: product.chocolatePerCup,
-        kunafa_per_cup: product.kunafaPerCup,
-        cups_per_cup: product.cupsPerCup,
-        sticks_per_cup: product.sticksPerCup,
-      });
+  const { error } = await supabase
+    .from('products')
+    .upsert({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      use_manual_cost: product.useManualCost,
+      manual_cost_per_cup: product.manualCostPerCup || 0,
+      strawberries_per_cup: product.strawberriesPerCup,
+      chocolate_per_cup: product.chocolatePerCup,
+      kunafa_per_cup: product.kunafaPerCup,
+      cups_per_cup: product.cupsPerCup,
+      sticks_per_cup: product.sticksPerCup,
+    });
 
-    if (error) {
-      console.error('Error upserting product:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error upserting product:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -144,16 +144,16 @@ export async function deleteProduct(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting product:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting product:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -167,24 +167,24 @@ export async function getSales(): Promise<Sale[] | null> {
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('sales')
-      .select('*')
-      .order('date', { ascending: true });
+  const { data, error } = await supabase
+    .from('sales')
+    .select('*')
+    .order('date', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching sales:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching sales:', error);
+    return null;
+  }
 
-    return data?.map(row => ({
-      id: row.id,
-      date: row.date,
-      productId: row.product_id,
-      qty: row.qty,
-      unitPrice: row.unit_price,
+  return data?.map(row => ({
+    id: row.id,
+    date: row.date,
+    productId: row.product_id,
+    qty: row.qty,
+    unitPrice: row.unit_price,
       source: (row.source as 'pos' | 'manual') || 'manual', // Default to 'manual' for existing sales
-    })) || [];
+  })) || [];
   } catch {
     return null;
   }
@@ -194,24 +194,24 @@ export async function addSale(sale: Omit<Sale, 'id'>): Promise<Sale | null> {
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const id = generateId('s');
-    const { error } = await supabase
-      .from('sales')
-      .insert({
-        id,
-        date: sale.date,
-        product_id: sale.productId,
-        qty: sale.qty,
-        unit_price: sale.unitPrice,
+  const id = generateId('s');
+  const { error } = await supabase
+    .from('sales')
+    .insert({
+      id,
+      date: sale.date,
+      product_id: sale.productId,
+      qty: sale.qty,
+      unit_price: sale.unitPrice,
         source: sale.source || 'manual', // Default to 'manual' if not specified
-      });
+    });
 
-    if (error) {
-      console.error('Error adding sale:', error.message, error.details, error.hint);
-      return null;
-    }
+  if (error) {
+    console.error('Error adding sale:', error.message, error.details, error.hint);
+    return null;
+  }
 
-    return { id, ...sale };
+  return { id, ...sale };
   } catch {
     return null;
   }
@@ -221,16 +221,16 @@ export async function deleteSale(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('sales')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('sales')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting sale:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting sale:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -244,20 +244,20 @@ export async function getFixedCosts(): Promise<FixedCost[] | null> {
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('fixed_costs')
-      .select('*');
+  const { data, error } = await supabase
+    .from('fixed_costs')
+    .select('*');
 
-    if (error) {
-      console.error('Error fetching fixed costs:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching fixed costs:', error);
+    return null;
+  }
 
-    return data?.map(row => ({
-      id: row.id,
-      name: row.name,
-      amount: row.amount,
-    })) || [];
+  return data?.map(row => ({
+    id: row.id,
+    name: row.name,
+    amount: row.amount,
+  })) || [];
   } catch {
     return null;
   }
@@ -267,21 +267,21 @@ export async function addFixedCost(cost: Omit<FixedCost, 'id'>): Promise<FixedCo
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const id = generateId('f');
-    const { error } = await supabase
-      .from('fixed_costs')
-      .insert({
-        id,
-        name: cost.name,
-        amount: cost.amount,
-      });
+  const id = generateId('f');
+  const { error } = await supabase
+    .from('fixed_costs')
+    .insert({
+      id,
+      name: cost.name,
+      amount: cost.amount,
+    });
 
-    if (error) {
-      console.error('Error adding fixed cost:', error.message, error.details, error.hint);
-      return null;
-    }
+  if (error) {
+    console.error('Error adding fixed cost:', error.message, error.details, error.hint);
+    return null;
+  }
 
-    return { id, ...cost };
+  return { id, ...cost };
   } catch {
     return null;
   }
@@ -291,19 +291,19 @@ export async function updateFixedCost(id: string, updates: Partial<FixedCost>): 
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('fixed_costs')
-      .update({
-        ...(updates.name !== undefined && { name: updates.name }),
-        ...(updates.amount !== undefined && { amount: updates.amount }),
-      })
-      .eq('id', id);
+  const { error } = await supabase
+    .from('fixed_costs')
+    .update({
+      ...(updates.name !== undefined && { name: updates.name }),
+      ...(updates.amount !== undefined && { amount: updates.amount }),
+    })
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error updating fixed cost:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error updating fixed cost:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -313,16 +313,16 @@ export async function deleteFixedCost(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('fixed_costs')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('fixed_costs')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting fixed cost:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting fixed cost:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -336,29 +336,29 @@ export async function getIngredients(): Promise<Record<string, Ingredient> | nul
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('ingredients')
-      .select('*');
+  const { data, error } = await supabase
+    .from('ingredients')
+    .select('*');
 
-    if (error) {
-      console.error('Error fetching ingredients:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching ingredients:', error);
+    return null;
+  }
 
-    const ingredients: Record<string, Ingredient> = {};
+  const ingredients: Record<string, Ingredient> = {};
     if (data) {
       for (const row of data) {
-        ingredients[row.id] = {
-          id: row.id,
-          name: row.name,
-          unit: row.unit as 'g' | 'pcs' | 'units',
-          defaultBulkQty: row.default_bulk_qty,
-          defaultBulkCost: row.default_bulk_cost,
-        };
+    ingredients[row.id] = {
+      id: row.id,
+      name: row.name,
+      unit: row.unit as 'g' | 'pcs' | 'units',
+      defaultBulkQty: row.default_bulk_qty,
+      defaultBulkCost: row.default_bulk_cost,
+    };
       }
     }
 
-    return ingredients;
+  return ingredients;
   } catch {
     return null;
   }
@@ -368,21 +368,21 @@ export async function upsertIngredient(ingredient: Ingredient): Promise<boolean>
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('ingredients')
-      .upsert({
-        id: ingredient.id,
-        name: ingredient.name,
-        unit: ingredient.unit,
-        default_bulk_qty: ingredient.defaultBulkQty,
-        default_bulk_cost: ingredient.defaultBulkCost,
-      });
+  const { error } = await supabase
+    .from('ingredients')
+    .upsert({
+      id: ingredient.id,
+      name: ingredient.name,
+      unit: ingredient.unit,
+      default_bulk_qty: ingredient.defaultBulkQty,
+      default_bulk_cost: ingredient.defaultBulkCost,
+    });
 
-    if (error) {
-      console.error('Error upserting ingredient:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error upserting ingredient:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -392,23 +392,23 @@ export async function addIngredient(ingredient: Omit<Ingredient, 'id'>): Promise
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const id = generateId('ing');
-    const { error } = await supabase
-      .from('ingredients')
-      .insert({
-        id,
-        name: ingredient.name,
-        unit: ingredient.unit,
-        default_bulk_qty: ingredient.defaultBulkQty,
-        default_bulk_cost: ingredient.defaultBulkCost,
-      });
+  const id = generateId('ing');
+  const { error } = await supabase
+    .from('ingredients')
+    .insert({
+      id,
+      name: ingredient.name,
+      unit: ingredient.unit,
+      default_bulk_qty: ingredient.defaultBulkQty,
+      default_bulk_cost: ingredient.defaultBulkCost,
+    });
 
-    if (error) {
-      console.error('Error adding ingredient:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error adding ingredient:', error);
+    return null;
+  }
 
-    return { id, ...ingredient };
+  return { id, ...ingredient };
   } catch {
     return null;
   }
@@ -418,16 +418,16 @@ export async function deleteIngredient(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('ingredients')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('ingredients')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting ingredient:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting ingredient:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -441,24 +441,24 @@ export async function getIngredientBatches(): Promise<IngredientBatch[] | null> 
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('ingredient_batches')
-      .select('*')
-      .order('date', { ascending: true });
+  const { data, error } = await supabase
+    .from('ingredient_batches')
+    .select('*')
+    .order('date', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching ingredient batches:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching ingredient batches:', error);
+    return null;
+  }
 
-    return data?.map(row => ({
-      id: row.id,
-      ingredientId: row.ingredient_id,
-      name: row.name || '',
-      date: row.date,
-      bulkQty: row.bulk_qty,
-      bulkCost: row.bulk_cost,
-    })) || [];
+  return data?.map(row => ({
+    id: row.id,
+    ingredientId: row.ingredient_id,
+    name: row.name || '',
+    date: row.date,
+    bulkQty: row.bulk_qty,
+    bulkCost: row.bulk_cost,
+  })) || [];
   } catch {
     return null;
   }
@@ -468,24 +468,24 @@ export async function addIngredientBatch(batch: Omit<IngredientBatch, 'id'>): Pr
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const id = generateId('ib');
+  const id = generateId('ib');
     const { error } = await supabase
-      .from('ingredient_batches')
-      .insert({
-        id,
-        ingredient_id: batch.ingredientId,
-        name: batch.name || null,
-        date: batch.date,
-        bulk_qty: batch.bulkQty,
-        bulk_cost: batch.bulkCost,
+    .from('ingredient_batches')
+    .insert({
+      id,
+      ingredient_id: batch.ingredientId,
+      name: batch.name || null,
+      date: batch.date,
+      bulk_qty: batch.bulkQty,
+      bulk_cost: batch.bulkCost,
       });
 
-    if (error) {
-      console.error('Error adding ingredient batch:', error.message, error.details, error.hint);
-      return null;
-    }
+  if (error) {
+    console.error('Error adding ingredient batch:', error.message, error.details, error.hint);
+    return null;
+  }
 
-    return { id, ...batch };
+  return { id, ...batch };
   } catch {
     return null;
   }
@@ -495,16 +495,16 @@ export async function deleteIngredientBatch(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('ingredient_batches')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('ingredient_batches')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting ingredient batch:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting ingredient batch:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -518,27 +518,27 @@ export async function getStrawberryBatches(): Promise<StrawberryBatch[] | null> 
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('strawberry_batches')
-      .select('*')
-      .order('date', { ascending: true });
+  const { data, error } = await supabase
+    .from('strawberry_batches')
+    .select('*')
+    .order('date', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching strawberry batches:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching strawberry batches:', error);
+    return null;
+  }
 
-    return data?.map(row => ({
-      id: row.id,
-      name: row.name || '',
-      date: row.date,
-      bulkWeightKg: row.bulk_weight_kg,
-      bulkWeightG: row.bulk_weight_g,
-      bulkCost: row.bulk_cost,
-      avgWeightPerStrawberry: row.avg_weight_per_strawberry,
-      costPerGram: row.cost_per_gram,
-      costPerStrawberry: row.cost_per_strawberry,
-    })) || [];
+  return data?.map(row => ({
+    id: row.id,
+    name: row.name || '',
+    date: row.date,
+    bulkWeightKg: row.bulk_weight_kg,
+    bulkWeightG: row.bulk_weight_g,
+    bulkCost: row.bulk_cost,
+    avgWeightPerStrawberry: row.avg_weight_per_strawberry,
+    costPerGram: row.cost_per_gram,
+    costPerStrawberry: row.cost_per_strawberry,
+  })) || [];
   } catch {
     return null;
   }
@@ -550,28 +550,28 @@ export async function addStrawberryBatch(
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const id = generateId('sb');
-    const costPerGram = batch.bulkWeightG > 0 ? batch.bulkCost / batch.bulkWeightG : 0;
-    const costPerStrawberry = costPerGram * batch.avgWeightPerStrawberry;
+  const id = generateId('sb');
+  const costPerGram = batch.bulkWeightG > 0 ? batch.bulkCost / batch.bulkWeightG : 0;
+  const costPerStrawberry = costPerGram * batch.avgWeightPerStrawberry;
 
-    const { error } = await supabase
-      .from('strawberry_batches')
-      .insert({
-        id,
-        name: batch.name || null,
-        date: batch.date,
-        bulk_weight_kg: batch.bulkWeightKg,
-        bulk_weight_g: batch.bulkWeightG,
-        bulk_cost: batch.bulkCost,
-        avg_weight_per_strawberry: batch.avgWeightPerStrawberry,
-      });
+  const { error } = await supabase
+    .from('strawberry_batches')
+    .insert({
+      id,
+      name: batch.name || null,
+      date: batch.date,
+      bulk_weight_kg: batch.bulkWeightKg,
+      bulk_weight_g: batch.bulkWeightG,
+      bulk_cost: batch.bulkCost,
+      avg_weight_per_strawberry: batch.avgWeightPerStrawberry,
+    });
 
-    if (error) {
-      console.error('Error adding strawberry batch:', error.message, error.details, error.hint);
-      return null;
-    }
+  if (error) {
+    console.error('Error adding strawberry batch:', error.message, error.details, error.hint);
+    return null;
+  }
 
-    return { id, ...batch, costPerGram, costPerStrawberry };
+  return { id, ...batch, costPerGram, costPerStrawberry };
   } catch {
     return null;
   }
@@ -581,23 +581,23 @@ export async function updateStrawberryBatch(id: string, updates: Partial<Strawbe
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('strawberry_batches')
-      .update({
-        ...(updates.name !== undefined && { name: updates.name }),
-        ...(updates.date !== undefined && { date: updates.date }),
-        ...(updates.bulkWeightKg !== undefined && { bulk_weight_kg: updates.bulkWeightKg }),
-        ...(updates.bulkWeightG !== undefined && { bulk_weight_g: updates.bulkWeightG }),
-        ...(updates.bulkCost !== undefined && { bulk_cost: updates.bulkCost }),
-        ...(updates.avgWeightPerStrawberry !== undefined && { avg_weight_per_strawberry: updates.avgWeightPerStrawberry }),
-      })
-      .eq('id', id);
+  const { error } = await supabase
+    .from('strawberry_batches')
+    .update({
+      ...(updates.name !== undefined && { name: updates.name }),
+      ...(updates.date !== undefined && { date: updates.date }),
+      ...(updates.bulkWeightKg !== undefined && { bulk_weight_kg: updates.bulkWeightKg }),
+      ...(updates.bulkWeightG !== undefined && { bulk_weight_g: updates.bulkWeightG }),
+      ...(updates.bulkCost !== undefined && { bulk_cost: updates.bulkCost }),
+      ...(updates.avgWeightPerStrawberry !== undefined && { avg_weight_per_strawberry: updates.avgWeightPerStrawberry }),
+    })
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error updating strawberry batch:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error updating strawberry batch:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -607,16 +607,16 @@ export async function deleteStrawberryBatch(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('strawberry_batches')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('strawberry_batches')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting strawberry batch:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting strawberry batch:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
@@ -630,24 +630,24 @@ export async function getWasteEntries(): Promise<WasteEntry[] | null> {
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('waste_entries')
-      .select('*')
-      .order('date', { ascending: true });
+  const { data, error } = await supabase
+    .from('waste_entries')
+    .select('*')
+    .order('date', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching waste entries:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error fetching waste entries:', error);
+    return null;
+  }
 
-    return data?.map(row => ({
-      id: row.id,
-      date: row.date,
-      ingredientId: row.ingredient_id,
-      qty: row.qty,
-      reason: row.reason || '',
-      estimatedCost: row.estimated_cost,
-    })) || [];
+  return data?.map(row => ({
+    id: row.id,
+    date: row.date,
+    ingredientId: row.ingredient_id,
+    qty: row.qty,
+    reason: row.reason || '',
+    estimatedCost: row.estimated_cost,
+  })) || [];
   } catch {
     return null;
   }
@@ -657,24 +657,24 @@ export async function addWasteEntry(entry: Omit<WasteEntry, 'id'>): Promise<Wast
   if (!isSupabaseConfigured()) return null;
 
   try {
-    const id = generateId('w');
-    const { error } = await supabase
-      .from('waste_entries')
-      .insert({
-        id,
-        date: entry.date,
-        ingredient_id: entry.ingredientId,
-        qty: entry.qty,
-        reason: entry.reason || null,
-        estimated_cost: entry.estimatedCost,
-      });
+  const id = generateId('w');
+  const { error } = await supabase
+    .from('waste_entries')
+    .insert({
+      id,
+      date: entry.date,
+      ingredient_id: entry.ingredientId,
+      qty: entry.qty,
+      reason: entry.reason || null,
+      estimated_cost: entry.estimatedCost,
+    });
 
-    if (error) {
-      console.error('Error adding waste entry:', error.message, error.details, error.hint);
-      return null;
-    }
+  if (error) {
+    console.error('Error adding waste entry:', error.message, error.details, error.hint);
+    return null;
+  }
 
-    return { id, ...entry };
+  return { id, ...entry };
   } catch {
     return null;
   }
@@ -684,16 +684,16 @@ export async function deleteWasteEntry(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-    const { error } = await supabase
-      .from('waste_entries')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('waste_entries')
+    .delete()
+    .eq('id', id);
 
-    if (error) {
-      console.error('Error deleting waste entry:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error deleting waste entry:', error);
+    return false;
+  }
+  return true;
   } catch {
     return false;
   }
