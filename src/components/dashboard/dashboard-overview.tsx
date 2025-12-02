@@ -54,7 +54,7 @@ export function DashboardOverview() {
   const grossProfitCOGS = stats.totalRevenue - totalCOGS;
   const netProfitCOGS = grossProfitCOGS - stats.fixedTotal;
   const remainingToBreakevenCOGS = netProfitCOGS >= 0 ? 0 : Math.abs(netProfitCOGS);
-  
+
   // Calculate amount left to cover fixed costs only
   const remainingForFixedCosts = Math.max(0, stats.fixedTotal - grossProfitCOGS);
 

@@ -83,7 +83,7 @@ export default function Home() {
 
   return (
     <RouteGuard requiredRole="owner">
-      <SidebarProvider>
+    <SidebarProvider>
       <AppSidebar activeView={activeView} onViewChange={setActiveView} />
       <SidebarInset className="bg-background">
         <header className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 bg-background/80 backdrop-blur-sm border-b border-border/50">

@@ -41,7 +41,7 @@ export async function getSettings(): Promise<{
     if (data) {
       for (const row of data) {
         // JSONB values are already parsed by Supabase
-        settings[row.key] = row.value;
+    settings[row.key] = row.value;
       }
     }
 
@@ -59,7 +59,7 @@ export async function getSettings(): Promise<{
   } catch {
     // If parsing fails, use empty object
     manualInventoryAdjustments = {};
-  }
+    }
 
   return {
     posFeePercent: parseFloat(String(settings.pos_fee_percent || '0')),
@@ -94,15 +94,15 @@ export async function updateSetting(key: string, value: string | number | boolea
       jsonbValue = String(value);
     }
 
-    const { error } = await supabase
-      .from('settings')
+  const { error } = await supabase
+    .from('settings')
       .upsert({ key, value: jsonbValue }, { onConflict: 'key' });
 
-    if (error) {
-      console.error('Error updating setting:', error);
-      return false;
-    }
-    return true;
+  if (error) {
+    console.error('Error updating setting:', error);
+    return false;
+  }
+  return true;
   } catch (error) {
     console.error('Error in updateSetting:', error);
     return false;

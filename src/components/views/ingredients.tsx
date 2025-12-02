@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,15 +84,9 @@ export function IngredientsView() {
   }
 
   const activeBatch = getActiveStrawberryBatch();
-  // Use useMemo to ensure inventory recalculates when relevant state changes
-  // calculateInventory already depends on state.manualInventoryAdjustments, so it will update
-  const inventory = useMemo(() => {
-    return calculateInventory();
-  }, [
-    calculateInventory,
-    // Explicitly include manualInventoryAdjustments to ensure recalculation
-    JSON.stringify(state.manualInventoryAdjustments),
-  ]);
+  // calculateInventory is a useCallback that already depends on state.manualInventoryAdjustments
+  // So it will automatically recalculate when manual adjustments change
+  const inventory = calculateInventory();
 
   const handleAddIngredient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,10 +250,10 @@ export function IngredientsView() {
                     <span className="font-medium">Avg weight:</span> {activeBatch.avgWeightPerStrawberry}g
                   </p>
                   <p className="hidden sm:block">
-                    Cost per gram: {activeBatch.costPerGram.toFixed(4)} AED | 
-                    Cost per strawberry: {formatCurrency(activeBatch.costPerStrawberry)} | 
-                    Avg weight: {activeBatch.avgWeightPerStrawberry}g
-                  </p>
+                  Cost per gram: {activeBatch.costPerGram.toFixed(4)} AED | 
+                  Cost per strawberry: {formatCurrency(activeBatch.costPerStrawberry)} | 
+                  Avg weight: {activeBatch.avgWeightPerStrawberry}g
+                </p>
                 </div>
               </div>
             </div>
@@ -286,7 +280,7 @@ export function IngredientsView() {
               <span className="hidden sm:inline">Ingredients</span>
               <span className="sm:hidden">Items</span>
             </TabsTrigger>
-          </TabsList>
+        </TabsList>
         </div>
 
         {/* Inventory Tab */}
@@ -408,9 +402,9 @@ export function IngredientsView() {
                                   )}
                                 </div>
                                 <span className={`text-sm font-medium ${isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-green-600'}`}>
-                                  {inv.remaining.toLocaleString()} {inv.unit}
-                                </span>
-                              </div>
+                              {inv.remaining.toLocaleString()} {inv.unit}
+                            </span>
+                          </div>
                               <Button
                                 variant="ghost"
                                 size="icon"
