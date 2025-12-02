@@ -232,6 +232,10 @@ export function SalesLog() {
       kunafaG = sale.qty * product.kunafaPerCup;
     }
 
+    // Determine if this is the first item in a transaction
+    const transactionKey = sale.source === 'pos' ? (sale.transactionId || sale.id) : null;
+    const isFirstInTransaction = transactionKey && !transactionFeeApplied.has(transactionKey);
+    
     return {
       sale,
       index: index + 1,
@@ -251,6 +255,8 @@ export function SalesLog() {
       chocolateG,
       kunafaG,
       batchUsed: batch?.name || 'Default',
+      transactionKey, // Store transaction key for grouping display
+      isFirstInTransaction, // Flag to show transaction indicator
     };
   });
 
@@ -261,6 +267,9 @@ export function SalesLog() {
 
   // Reverse for display (newest first)
   const displaySales = [...filteredSales].reverse();
+  
+  // Track which transactions we've seen to identify first item in each transaction
+  const seenTransactions = new Set<string>();
 
   // Calculate preview cost using selected date
   const previewCost = productId && saleDate
@@ -471,9 +480,40 @@ export function SalesLog() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displaySales.map((row) => (
-                    <TableRow key={row.sale.id} className={`transition-colors ${row.isBreakeven ? 'bg-green-50/50 dark:bg-green-950/20' : ''}`}>
-                      <TableCell className="text-muted-foreground text-xs">{row.index}</TableCell>
+                  {displaySales.map((row, displayIndex) => {
+                    // Check if this is part of a transaction group
+                    const isInTransaction = row.transactionKey && row.sale.source === 'pos';
+                    const isFirstInGroup = isInTransaction && !seenTransactions.has(row.transactionKey!);
+                    if (isFirstInGroup) {
+                      seenTransactions.add(row.transactionKey!);
+                    }
+                    const transactionRowCount = isInTransaction 
+                      ? displaySales.filter(r => r.transactionKey === row.transactionKey).length 
+                      : 0;
+                    
+                    return (
+                    <TableRow 
+                      key={row.sale.id} 
+                      className={`transition-colors ${
+                        row.isBreakeven ? 'bg-green-50/50 dark:bg-green-950/20' : ''
+                      } ${
+                        isInTransaction ? 'border-l-2 border-l-emerald-400 dark:border-l-emerald-600' : ''
+                      } ${
+                        isFirstInGroup ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : ''
+                      }`}
+                    >
+                      <TableCell className="text-muted-foreground text-xs">
+                        {isFirstInGroup && transactionRowCount > 1 ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span>{row.index}</span>
+                            <span className="text-[8px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                              {transactionRowCount} items
+                            </span>
+                          </div>
+                        ) : (
+                          row.index
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium text-sm">{row.sale.date}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
@@ -485,6 +525,9 @@ export function SalesLog() {
                           <Badge variant="outline" className="text-xs gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
                             <Store className="h-3 w-3" />
                             POS
+                            {isFirstInGroup && transactionRowCount > 1 && (
+                              <span className="ml-1 text-[10px]">({transactionRowCount})</span>
+                            )}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs gap-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
@@ -541,7 +584,8 @@ export function SalesLog() {
                         </AlertDialog>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
