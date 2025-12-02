@@ -40,29 +40,36 @@ export function DashboardChart({ title, description, data, type }: DashboardChar
       </CardHeader>
       <CardContent className="pt-6">
         {type === 'pie' ? (
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                outerRadius={100}
+                cy="45%"
+                labelLine={true}
+                label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
+                outerRadius={90}
+                innerRadius={0}
                 fill="#8884d8"
                 dataKey="value"
+                paddingAngle={2}
               >
                 {data.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number, name: string, props) => [
+                formatter={(value: number, _name: string, props) => [
                   `${value} units (${formatCurrency(props.payload.revenue || 0)})`,
                   props.payload.name,
                 ]}
               />
-              <Legend />
+              <Legend 
+                layout="horizontal" 
+                verticalAlign="bottom" 
+                align="center"
+                wrapperStyle={{ paddingTop: '20px' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         ) : (
