@@ -90,13 +90,14 @@ export default function POSPage() {
 
     // Add each item as a separate sale (marked as POS source for automatic fee calculation)
     for (const item of order) {
-      await addSale({
+      const saleData = {
         date: today,
         productId: item.productId,
         qty: item.qty,
         unitPrice: item.unitPrice,
-        source: 'pos',
-      });
+        source: 'pos' as const, // Explicitly set as 'pos' type
+      };
+      await addSale(saleData);
     }
 
     toast.success('Order submitted!', {

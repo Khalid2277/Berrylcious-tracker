@@ -195,6 +195,9 @@ export async function addSale(sale: Omit<Sale, 'id'>): Promise<Sale | null> {
 
   try {
   const id = generateId('s');
+  // Explicitly set source field - ensure it's not undefined
+  const sourceValue: 'pos' | 'manual' = sale.source === 'pos' ? 'pos' : 'manual';
+  
   const { error } = await supabase
     .from('sales')
     .insert({
@@ -203,7 +206,7 @@ export async function addSale(sale: Omit<Sale, 'id'>): Promise<Sale | null> {
       product_id: sale.productId,
       qty: sale.qty,
       unit_price: sale.unitPrice,
-        source: sale.source || 'manual', // Default to 'manual' if not specified
+      source: sourceValue, // Explicitly set source value
     });
 
   if (error) {

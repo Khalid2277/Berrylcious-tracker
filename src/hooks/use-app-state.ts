@@ -260,7 +260,12 @@ export function useAppState() {
 
   const addSale = useCallback(async (sale: Omit<Sale, 'id'>) => {
     const id = 's' + Date.now() + Math.random().toString(16).slice(2);
-    const newSale: Sale = { ...sale, id };
+    // Ensure source field is explicitly preserved
+    const newSale: Sale = { 
+      ...sale, 
+      id,
+      source: sale.source || 'manual', // Explicitly set source
+    };
     
     setState(prev => ({
       ...prev,
@@ -268,7 +273,11 @@ export function useAppState() {
     }));
 
     if (useSupabase) {
-      await db.addSale(sale);
+      // Pass the sale with explicit source field
+      await db.addSale({
+        ...sale,
+        source: sale.source || 'manual', // Explicitly ensure source is set
+      });
     }
   }, [useSupabase]);
 
