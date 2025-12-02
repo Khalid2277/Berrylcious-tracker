@@ -164,6 +164,7 @@ export function SalesLog() {
     const revenue = sale.qty * sale.unitPrice;
     
     // Calculate auto POS fee for POS-sourced transactions: AED 1 + 2.6%
+    // Fee is applied per transaction (each sale item from POS gets the fee)
     const autoPosFee = sale.source === 'pos' ? (1 + revenue * 0.026) : 0;
     const netRevenue = revenue - autoPosFee;
     

@@ -148,9 +148,16 @@ export function useAppState() {
             };
           });
           
+          // Ensure sales have source field (default to 'manual' if missing)
+          const salesWithSource = (parsed.sales || []).map((sale: Sale) => ({
+            ...sale,
+            source: sale.source || 'manual',
+          }));
+          
           setState({
             ...defaultState,
             ...parsed,
+            sales: salesWithSource,
             posFeeManual: parsed.posFeeManual ?? 0,
             useManualPosFee: parsed.useManualPosFee ?? false,
             ingredients: { ...defaultIngredients, ...parsed.ingredients },
@@ -706,9 +713,10 @@ export function useAppState() {
       totalCups += sale.qty;
 
       // Calculate automatic POS fees for POS-sourced transactions only
-      // Fee structure: AED 1 + 2.6% per transaction
+      // Fee structure: AED 1 + 2.6% per transaction (each sale item from POS gets the fee)
       if (sale.source === 'pos') {
-        autoPosFees += 1 + (revenue * 0.026);
+        const transactionFee = 1 + (revenue * 0.026);
+        autoPosFees += transactionFee;
       }
     });
 
