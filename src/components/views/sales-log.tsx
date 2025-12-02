@@ -204,13 +204,13 @@ export function SalesLog() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
+      <div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 sm:gap-3">
             <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 text-primary">
               <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            Sales Log
-          </h2>
+          </div>
+          Sales Log
+        </h2>
           <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
             Track daily sales with auto-calculated costs
           </p>
@@ -436,13 +436,13 @@ export function SalesLog() {
                       <TableCell>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
+                        <Button
+                          variant="ghost"
+                          size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>

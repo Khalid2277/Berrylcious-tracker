@@ -184,12 +184,12 @@ export function TransactionClassifier() {
   };
 
   const handleClearAll = () => {
-    setState({
-      transactions: [],
-      totals: { rocky: 0, strawberry: 0, dubai: 0, cookies: 0 },
-    });
-    setPendingAmount(null);
-    setPendingCombos([]);
+      setState({
+        transactions: [],
+        totals: { rocky: 0, strawberry: 0, dubai: 0, cookies: 0 },
+      });
+      setPendingAmount(null);
+      setPendingCombos([]);
 
     toast.success('All transactions cleared');
   };
@@ -370,8 +370,8 @@ export function TransactionClassifier() {
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" size="sm">
                       <RotateCcw className="h-4 w-4 mr-2" />
-                      Clear All
-                    </Button>
+                  Clear All
+                </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>

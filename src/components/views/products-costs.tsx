@@ -583,13 +583,13 @@ export function ProductsCosts() {
                         {!isBuiltIn && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
+                          <Button
+                            variant="ghost"
+                            size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>

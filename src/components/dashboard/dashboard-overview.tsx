@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 export function DashboardOverview() {
   const { state, calculateDashboardStats, calculateInventory, calculateCostPerCup, formatCurrency, isLoaded } = useAppState();
   const [costDialogOpen, setCostDialogOpen] = useState(false);
+  const [revenueDialogOpen, setRevenueDialogOpen] = useState(false);
   
   if (!isLoaded) {
     return <DashboardSkeleton />;
@@ -20,6 +21,19 @@ export function DashboardOverview() {
 
   const stats = calculateDashboardStats();
   const inventory = calculateInventory();
+
+  // Calculate COGS (Cost of Goods Sold) - what was actually used, not purchased
+  const totalCOGS = state.sales.reduce((sum, sale) => {
+    const product = state.products[sale.productId];
+    if (!product) return sum;
+    const costPerCup = calculateCostPerCup(product, sale.date);
+    return sum + (sale.qty * costPerCup);
+  }, 0);
+
+  // Calculate profit based on COGS (same as Sales Log)
+  const grossProfitCOGS = stats.totalRevenue - totalCOGS;
+  const netProfitCOGS = grossProfitCOGS - stats.fixedTotal;
+  const remainingToBreakevenCOGS = netProfitCOGS >= 0 ? 0 : Math.abs(netProfitCOGS);
 
   // Calculate average profit per cup for strawberry products only (normal & kunafa)
   const strawberryProductIds = ['normal', 'kunafa'];
@@ -36,28 +50,29 @@ export function DashboardOverview() {
 
   const revenueCards = [
     {
+      id: 'net-revenue',
       title: 'Net Revenue',
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      description: `Gross ${formatCurrency(stats.grossRevenue)} (incl. tips ${formatCurrency(stats.tipsRevenue)})`,
+      description: 'Tap to see breakdown',
       iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
       iconColor: 'text-emerald-600 dark:text-emerald-400',
       valueColor: 'text-foreground',
-      change: '+24.94%',
-      changePositive: true,
+      clickable: true,
     },
     {
-      title: 'Total Variable Cost',
-      value: formatCurrency(stats.totalVarCost),
+      id: 'cogs',
+      title: 'Cost of Goods Sold',
+      value: formatCurrency(totalCOGS),
       icon: Package,
-      description: 'Total purchases',
+      description: 'Based on actual usage',
       iconBg: 'bg-red-100 dark:bg-red-900/30',
       iconColor: 'text-red-600 dark:text-red-400',
       valueColor: 'text-foreground',
-      change: null,
-      changePositive: false,
+      clickable: false,
     },
     {
+      id: 'cups',
       title: 'Total Cups',
       value: stats.totalCups.toLocaleString(),
       icon: Coffee,
@@ -65,19 +80,18 @@ export function DashboardOverview() {
       iconBg: 'bg-blue-100 dark:bg-blue-900/30',
       iconColor: 'text-blue-600 dark:text-blue-400',
       valueColor: 'text-foreground',
-      change: '+24.94%',
-      changePositive: true,
+      clickable: false,
     },
     {
+      id: 'profit',
       title: 'Net Profit',
-      value: formatCurrency(stats.netAfterFixed),
+      value: formatCurrency(netProfitCOGS),
       icon: TrendingUp,
       description: 'After all expenses',
-      iconBg: stats.netAfterFixed >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30',
-      iconColor: stats.netAfterFixed >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
+      iconBg: netProfitCOGS >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30',
+      iconColor: netProfitCOGS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
       valueColor: 'text-foreground',
-      change: stats.netAfterFixed >= 0 ? null : '-10.42%',
-      changePositive: stats.netAfterFixed >= 0,
+      clickable: false,
     },
   ];
 
@@ -127,31 +141,26 @@ export function DashboardOverview() {
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {revenueCards.map((card, index) => (
           <Card 
-            key={card.title} 
-            className="transition-all hover:shadow-md"
+            key={card.id} 
+            className={`transition-all hover:shadow-md ${card.clickable ? 'cursor-pointer' : ''}`}
             style={{ animationDelay: `${index * 50}ms` }}
+            onClick={() => card.id === 'net-revenue' && setRevenueDialogOpen(true)}
           >
             <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
               <div className="flex items-center justify-between mb-2 sm:mb-4">
                 <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${card.iconBg} flex items-center justify-center`}>
                   <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.iconColor}`} />
-        </div>
-                {card.change && (
-                  <span className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full hidden sm:inline-block ${
-                    card.changePositive 
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  }`}>
-                    {card.change}
-                  </span>
+                </div>
+                {card.clickable && (
+                  <Info className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 )}
-      </div>
+              </div>
               <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 truncate">{card.title}</p>
               <div className={`text-lg sm:text-xl md:text-2xl font-bold ${card.valueColor} truncate`}>{card.value}</div>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate hidden sm:block">{card.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Extra Summary Cards */}
@@ -178,21 +187,21 @@ export function DashboardOverview() {
         <Card>
           <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-              <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${stats.remainingToBreakeven === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'} flex items-center justify-center`}>
-                <Target className={`h-4 w-4 sm:h-5 sm:w-5 ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
+              <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${remainingToBreakevenCOGS === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'} flex items-center justify-center`}>
+                <Target className={`h-4 w-4 sm:h-5 sm:w-5 ${remainingToBreakevenCOGS === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
               </div>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1">To Break-even</p>
-            <div className={`text-lg sm:text-xl md:text-2xl font-bold ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-              {stats.remainingToBreakeven === 0 ? '✓ Achieved!' : formatCurrency(stats.remainingToBreakeven)}
+            <div className={`text-lg sm:text-xl md:text-2xl font-bold ${remainingToBreakevenCOGS === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              {remainingToBreakevenCOGS === 0 ? '✓ Achieved!' : formatCurrency(remainingToBreakevenCOGS)}
             </div>
-            {stats.remainingToBreakeven > 0 && avgProfitPerStrawberryCup > 0 && (
+            {remainingToBreakevenCOGS > 0 && avgProfitPerStrawberryCup > 0 && (
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
-                ~{Math.ceil(stats.remainingToBreakeven / avgProfitPerStrawberryCup)} cups to go
+                ~{Math.ceil(remainingToBreakevenCOGS / avgProfitPerStrawberryCup)} cups to go
               </p>
             )}
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Cost Breakdown Dialog */}
@@ -347,30 +356,30 @@ export function DashboardOverview() {
             </div>
 
             {/* Breakeven Status */}
-            <div className={`p-4 rounded-xl ${stats.remainingToBreakeven === 0 ? 'bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-950/40 dark:to-emerald-950/40 border-2 border-green-400' : 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-400'}`}>
+            <div className={`p-4 rounded-xl ${remainingToBreakevenCOGS === 0 ? 'bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-950/40 dark:to-emerald-950/40 border-2 border-green-400' : 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-400'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-base">
-                    {stats.remainingToBreakeven === 0 ? '🎉 Breakeven Achieved!' : '📊 Breakeven Status'}
+                    {remainingToBreakevenCOGS === 0 ? '🎉 Breakeven Achieved!' : '📊 Breakeven Status'}
                   </h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {stats.remainingToBreakeven === 0 
+                    {remainingToBreakevenCOGS === 0 
                       ? 'You have covered all your fixed costs!'
                       : 'Amount needed to cover fixed costs'}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className={`font-bold text-2xl ${stats.remainingToBreakeven === 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                    {stats.remainingToBreakeven === 0 
+                  <span className={`font-bold text-2xl ${remainingToBreakevenCOGS === 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                    {remainingToBreakevenCOGS === 0 
                       ? '✓' 
-                      : formatCurrency(stats.remainingToBreakeven)}
+                      : formatCurrency(remainingToBreakevenCOGS)}
                   </span>
-                  {stats.remainingToBreakeven > 0 && (
+                  {remainingToBreakevenCOGS > 0 && (
                     <p className="text-xs text-muted-foreground">remaining</p>
                   )}
                 </div>
               </div>
-              {stats.remainingToBreakeven > 0 && avgProfitPerStrawberryCup > 0 && (
+              {remainingToBreakevenCOGS > 0 && avgProfitPerStrawberryCup > 0 && (
                 <div className="mt-3 pt-3 border-t border-amber-300/50">
                   <div className="flex justify-between text-sm">
                     <span>Avg profit per cup (Strawberry products)</span>
@@ -379,12 +388,66 @@ export function DashboardOverview() {
                   <div className="flex justify-between text-sm mt-1">
                     <span>Estimated cups to breakeven</span>
                     <span className="font-medium">
-                      ~{Math.ceil(stats.remainingToBreakeven / avgProfitPerStrawberryCup)} cups
+                      ~{Math.ceil(remainingToBreakevenCOGS / avgProfitPerStrawberryCup)} cups
                     </span>
                   </div>
                 </div>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revenue Breakdown Dialog */}
+      <Dialog open={revenueDialogOpen} onOpenChange={setRevenueDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Net Revenue Breakdown
+            </DialogTitle>
+            <DialogDescription>
+              How your net revenue is calculated
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 px-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                <span className="font-medium">Gross Revenue (Sales)</span>
+                <span className="font-bold text-emerald-600">{formatCurrency(stats.grossRevenue)}</span>
+              </div>
+              
+              <div className="text-center text-muted-foreground text-sm">minus</div>
+              
+              <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                <span>POS Fees ({state.useManualPosFee ? 'Manual' : `${state.posFeePercent}%`})</span>
+                <span className="text-red-600">-{formatCurrency(stats.posFees)}</span>
+              </div>
+              
+              <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                <span>Rocky Road Deductions</span>
+                <span className="text-red-600">-{formatCurrency(stats.rockyDeduction)}</span>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="bg-primary/10 p-4 rounded-xl">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-lg">Net Revenue</span>
+                <span className="font-bold text-2xl text-primary">{formatCurrency(stats.totalRevenue)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {formatCurrency(stats.grossRevenue)} - {formatCurrency(stats.posFees)} - {formatCurrency(stats.rockyDeduction)}
+              </p>
+            </div>
+
+            {stats.tipsRevenue > 0 && (
+              <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                <p><strong>Note:</strong> Gross revenue includes tips of {formatCurrency(stats.tipsRevenue)}</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
