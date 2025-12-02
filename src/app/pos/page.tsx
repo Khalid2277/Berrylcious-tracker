@@ -17,7 +17,7 @@ interface OrderItem {
 }
 
 export default function POSPage() {
-  const { state, addSale, formatCurrency, isLoaded } = useAppState();
+  const { state, addSale, isLoaded } = useAppState();
   const [order, setOrder] = useState<OrderItem[]>([]);
   const { theme, setTheme } = useTheme();
 
@@ -134,12 +134,12 @@ export default function POSPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header - Fixed */}
+      <div className="p-4 pb-2">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
               <span className="text-2xl">🍓</span> Berrylicious
             </h1>
             <p className="text-muted-foreground text-sm">Tap products to add</p>
@@ -153,128 +153,133 @@ export default function POSPage() {
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
         </div>
+      </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {sellableProducts.map((product) => {
-            const Icon = getProductIcon(product.id);
-            const colorClass = getProductColor(product.id);
-            const inOrder = order.find(item => item.productId === product.id);
-            
-            return (
-              <button
-                key={product.id}
-                onClick={() => addToOrder(product.id)}
-                className={`relative p-5 sm:p-6 rounded-2xl bg-gradient-to-br ${colorClass} text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[120px] sm:min-h-[140px]`}
-              >
-                {inOrder && (
-                  <div className="absolute -top-2 -right-2 h-8 w-8 bg-white text-foreground rounded-full flex items-center justify-center font-bold text-base shadow-lg border-2 border-current">
-                    {inOrder.qty}
-                  </div>
-                )}
-                <Icon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2" />
-                <p className="font-bold text-base sm:text-lg">{product.name}</p>
-                <p className="text-white/90 text-xl sm:text-2xl font-bold mt-1">
-                  {product.price} AED
-                </p>
-              </button>
-            );
-          })}
+      {/* Product Grid - Scrollable */}
+      <div className="flex-1 overflow-auto px-4 pb-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="grid grid-cols-2 gap-3">
+            {sellableProducts.map((product) => {
+              const Icon = getProductIcon(product.id);
+              const colorClass = getProductColor(product.id);
+              const inOrder = order.find(item => item.productId === product.id);
+              
+              return (
+                <button
+                  key={product.id}
+                  onClick={() => addToOrder(product.id)}
+                  className={`relative p-4 rounded-2xl bg-gradient-to-br ${colorClass} text-white shadow-lg hover:shadow-xl transition-all active:scale-[0.98] min-h-[100px]`}
+                >
+                  {inOrder && (
+                    <div className="absolute -top-2 -right-2 h-7 w-7 bg-white text-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
+                      {inOrder.qty}
+                    </div>
+                  )}
+                  <Icon className="h-8 w-8 mx-auto mb-1" />
+                  <p className="font-bold text-sm">{product.name}</p>
+                  <p className="text-white/90 text-lg font-bold">
+                    {product.price} AED
+                  </p>
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </div>
 
-        {/* Current Order - Fixed at bottom on mobile */}
-        <Card className="sticky bottom-4 shadow-xl border-2">
-          <CardContent className="p-4">
-            {order.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <ShoppingCart className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p className="font-medium">No items yet</p>
-                <p className="text-sm">Tap products above</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {/* Order Items */}
-                <div className="space-y-2 max-h-52 overflow-y-auto">
-                  {order.map((item) => (
-                    <div key={item.productId} className="flex items-center justify-between bg-muted/50 rounded-xl p-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{item.productName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.unitPrice} AED each
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 rounded-full"
-                            onClick={() => updateQty(item.productId, -1)}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="w-8 text-center font-bold text-lg">{item.qty}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 rounded-full"
-                            onClick={() => updateQty(item.productId, 1)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
+      {/* Cart - Fixed at bottom */}
+      <div className="p-4 pt-0">
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-xl border-2">
+            <CardContent className="p-3">
+              {order.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  <ShoppingCart className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p className="font-medium text-sm">No items yet</p>
+                  <p className="text-xs">Tap products above</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* Order Items */}
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                    {order.map((item) => (
+                      <div key={item.productId} className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{item.productName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.unitPrice} AED each
+                          </p>
                         </div>
                         
-                        <p className="font-bold w-20 text-right">
-                          {item.qty * item.unitPrice} AED
-                        </p>
-                        
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-destructive hover:text-destructive rounded-full"
-                          onClick={() => removeFromOrder(item.productId)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-0.5">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7 rounded-full"
+                              onClick={() => updateQty(item.productId, -1)}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-6 text-center font-bold text-sm">{item.qty}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7 rounded-full"
+                              onClick={() => updateQty(item.productId, 1)}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          
+                          <p className="font-bold w-16 text-right text-sm">
+                            {item.qty * item.unitPrice} AED
+                          </p>
+                          
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive rounded-full"
+                            onClick={() => removeFromOrder(item.productId)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                {/* Total & Actions */}
-                <div className="border-t pt-4 space-y-3">
-                  <div className="flex justify-between items-center">
+                  {/* Total & Actions */}
+                  <div className="border-t pt-2 flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-muted-foreground">{totalItems} item{totalItems > 1 ? 's' : ''}</p>
-                      <p className="text-3xl font-bold">{totalAmount} AED</p>
+                      <p className="text-xs text-muted-foreground">{totalItems} item{totalItems > 1 ? 's' : ''}</p>
+                      <p className="text-2xl font-bold">{totalAmount} AED</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="lg" onClick={clearOrder}>
+                      <Button variant="outline" size="sm" onClick={clearOrder}>
                         Clear
                       </Button>
                       <Button 
-                        size="lg"
+                        size="sm"
                         onClick={submitOrder}
-                        className="bg-emerald-600 hover:bg-emerald-700 gap-2 px-6"
+                        className="bg-emerald-600 hover:bg-emerald-700 gap-1.5"
                       >
-                        <Send className="h-5 w-5" />
+                        <Send className="h-4 w-4" />
                         Submit
                       </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground pt-4">
-          {format(new Date(), 'EEEE, MMMM d, yyyy')}
-        </p>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Footer */}
+          <p className="text-center text-[10px] text-muted-foreground mt-2">
+            {format(new Date(), 'EEEE, MMMM d, yyyy')}
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-
