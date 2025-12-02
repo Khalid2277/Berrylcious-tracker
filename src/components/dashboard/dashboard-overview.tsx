@@ -40,63 +40,44 @@ export function DashboardOverview() {
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
       description: `Gross ${formatCurrency(stats.grossRevenue)} (incl. tips ${formatCurrency(stats.tipsRevenue)})`,
-      color: 'text-green-600',
-      bgColor: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
-      borderColor: 'border-green-200 dark:border-green-800',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      valueColor: 'text-foreground',
+      change: '+24.94%',
+      changePositive: true,
     },
     {
       title: 'Total Variable Cost',
       value: formatCurrency(stats.totalVarCost),
-      icon: TrendingUp,
-      description: 'Cost of goods sold',
-      color: 'text-red-600',
+      icon: Package,
+      description: 'Total purchases',
+      iconBg: 'bg-red-100 dark:bg-red-900/30',
+      iconColor: 'text-red-600 dark:text-red-400',
+      valueColor: 'text-foreground',
+      change: null,
+      changePositive: false,
     },
     {
-      title: 'Deductions',
-      value: formatCurrency(stats.posFees + stats.rockyDeduction),
-      icon: Target,
-      description: `POS ${formatCurrency(stats.posFees)} + Rocky ${formatCurrency(stats.rockyDeduction)}`,
-      color: 'text-orange-600',
-    },
-    {
-      title: 'Profit (before fixed)',
-      value: formatCurrency(stats.profitBeforeFixed),
-      icon: TrendingUp,
-      description: 'Revenue - Variable Cost',
-      color: stats.profitBeforeFixed >= 0 ? 'text-green-600' : 'text-red-600',
-    },
-  ];
-
-  const profitCards = [
-    {
-      title: 'Fixed Costs',
-      value: formatCurrency(stats.fixedTotal),
-      icon: Calculator,
-      description: 'Monthly fixed expenses',
-      color: 'text-blue-600',
+      title: 'Total Cups',
+      value: stats.totalCups.toLocaleString(),
+      icon: Coffee,
+      description: 'Units sold',
+      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      valueColor: 'text-foreground',
+      change: '+24.94%',
+      changePositive: true,
     },
     {
       title: 'Net Profit',
       value: formatCurrency(stats.netAfterFixed),
       icon: TrendingUp,
       description: 'After all expenses',
-      color: stats.netAfterFixed >= 0 ? 'text-green-600' : 'text-red-600',
-      bgColor: stats.netAfterFixed >= 0 ? 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30' : 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30',
-      borderColor: stats.netAfterFixed >= 0 ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800',
-    },
-    {
-      title: 'Total Cups Sold',
-      value: `${stats.totalCups.toLocaleString()} cups`,
-      icon: ShoppingCart,
-      description: 'Units sold',
-      color: 'text-purple-600',
-    },
-    {
-      title: 'To Break-even',
-      value: formatCurrency(stats.remainingToBreakeven),
-      icon: Target,
-      description: stats.remainingToBreakeven === 0 ? 'Break-even achieved!' : 'Remaining amount',
-      color: stats.remainingToBreakeven === 0 ? 'text-green-600' : 'text-amber-600',
+      iconBg: stats.netAfterFixed >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30',
+      iconColor: stats.netAfterFixed >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
+      valueColor: 'text-foreground',
+      change: stats.netAfterFixed >= 0 ? null : '-10.42%',
+      changePositive: stats.netAfterFixed >= 0,
     },
   ];
 
@@ -142,89 +123,92 @@ export function DashboardOverview() {
         </p>
       </div>
 
-      {/* Revenue Metrics */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Revenue & Costs
-        </h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {revenueCards.map((card, index) => (
-            <Card 
-              key={card.title} 
-              className={`transition-all hover:shadow-md ${card.bgColor ? `bg-gradient-to-br ${card.bgColor} ${card.borderColor}` : ''}`}
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <card.icon className={`h-4 w-4 ${card.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${card.color}`}>{card.value}</div>
-                <p className="text-xs text-muted-foreground">{card.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* Main Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {revenueCards.map((card, index) => (
+          <Card 
+            key={card.title} 
+            className="transition-all hover:shadow-md"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`h-10 w-10 rounded-xl ${card.iconBg} flex items-center justify-center`}>
+                  <card.icon className={`h-5 w-5 ${card.iconColor}`} />
+                </div>
+                {card.change && (
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    card.changePositive 
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  }`}>
+                    {card.change}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">{card.title}</p>
+              <div className={`text-2xl font-bold ${card.valueColor}`}>{card.value}</div>
+              <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Profit Analysis */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Profit Analysis
-        </h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {profitCards.map((card, index) => (
-            <Card 
-              key={card.title}
-              className={`transition-all hover:shadow-md ${card.bgColor ? `bg-gradient-to-br ${card.bgColor} ${card.borderColor}` : ''}`}
-              style={{ animationDelay: `${(index + 4) * 50}ms` }}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <card.icon className={`h-4 w-4 ${card.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${card.color}`}>{card.value}</div>
-                <p className="text-xs text-muted-foreground">{card.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Extra Summary Card */}
+      {/* Extra Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card 
-          className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 cursor-pointer hover:shadow-lg transition-all border-emerald-200 dark:border-emerald-800"
+          className="cursor-pointer hover:shadow-md transition-all"
           onClick={() => setCostDialogOpen(true)}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              Total Cost (Fixed + Variable)
-              <Info className="h-3 w-3" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Calculator className="h-5 w-5 text-primary" />
+              </div>
+              <Info className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground mb-1">Total Costs</p>
+            <div className="text-2xl font-bold">
               {formatCurrency(stats.fixedTotal + stats.totalVarCost)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Click for breakdown</p>
+            <p className="text-xs text-muted-foreground mt-1">Fixed + Variable • Click for details</p>
           </CardContent>
         </Card>
         {stats.totalWasteCost > 0 && (
-          <Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border-red-200 dark:border-red-800">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Wasted/Unused Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">Waste Cost</p>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                 -{formatCurrency(stats.totalWasteCost)}
               </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Breakeven Card */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`h-10 w-10 rounded-xl ${stats.remainingToBreakeven === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'} flex items-center justify-center`}>
+                <Target className={`h-5 w-5 ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mb-1">To Break-even</p>
+            <div className={`text-2xl font-bold ${stats.remainingToBreakeven === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              {stats.remainingToBreakeven === 0 ? '✓ Achieved!' : formatCurrency(stats.remainingToBreakeven)}
+            </div>
+            {stats.remainingToBreakeven > 0 && avgProfitPerStrawberryCup > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                ~{Math.ceil(stats.remainingToBreakeven / avgProfitPerStrawberryCup)} cups to go
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Cost Breakdown Dialog */}

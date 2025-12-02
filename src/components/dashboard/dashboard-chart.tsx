@@ -15,7 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const COLORS = ['#f43f5e', '#ec4899', '#a855f7', '#6366f1', '#3b82f6', '#06b6d4'];
+const COLORS = ['#c4704b', '#e07b5c', '#8b5a3c', '#d4a574', '#6b8e6b', '#a67c5b'];
 
 interface DashboardChartProps {
   title: string;
@@ -34,8 +34,8 @@ export function DashboardChart({ title, description, data, type }: DashboardChar
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 dark:from-rose-950/20 dark:to-pink-950/20">
-        <CardTitle className="text-base">{title}</CardTitle>
+      <CardHeader>
+        <CardTitle className="text-base font-semibold">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">

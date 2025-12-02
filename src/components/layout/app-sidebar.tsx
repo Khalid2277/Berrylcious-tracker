@@ -27,37 +27,30 @@ const navigationItems = [
   {
     title: 'Dashboard',
     icon: BarChart3,
-    color: 'text-rose-500',
   },
   {
     title: 'Sales Log',
     icon: ShoppingBag,
-    color: 'text-pink-500',
   },
   {
     title: 'Products & Costs',
     icon: Package,
-    color: 'text-violet-500',
   },
   {
     title: 'Fixed Costs',
     icon: Calculator,
-    color: 'text-blue-500',
   },
   {
     title: 'Ingredients',
     icon: Beef,
-    color: 'text-amber-500',
   },
   {
     title: 'Waste Tracking',
     icon: Trash,
-    color: 'text-red-500',
   },
   {
     title: 'Transaction Classifier',
     icon: CreditCard,
-    color: 'text-emerald-500',
   },
 ];
 
@@ -68,27 +61,27 @@ interface AppSidebarProps {
 
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   return (
-    <Sidebar className="border-r border-rose-100 dark:border-rose-900/30">
-      <SidebarHeader className="border-b border-rose-100 dark:border-rose-900/30 p-4">
+    <Sidebar className="border-r-0 bg-sidebar">
+      <SidebarHeader className="p-5 pb-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20">
-            <Cherry className="h-5 w-5" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sidebar-accent text-sidebar-foreground">
+            <Cherry className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+            <h2 className="font-bold text-lg text-sidebar-foreground tracking-tight">
               Berrylicious
             </h2>
-            <p className="text-[10px] text-muted-foreground -mt-0.5">Kiosk Dashboard</p>
+            <p className="text-xs text-sidebar-foreground/50">Kiosk Dashboard</p>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-3">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground/70">
-            Navigation
+          <SidebarGroupLabel className="text-[11px] uppercase tracking-widest text-sidebar-foreground/40 font-medium mb-2 px-3">
+            Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {navigationItems.map((item) => {
                 const viewId = item.title.toLowerCase().replace(/\s+/g, '-');
                 const isActive = activeView === viewId;
@@ -98,14 +91,14 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     <SidebarMenuButton
                       onClick={() => onViewChange(viewId)}
                       isActive={isActive}
-                      className={`transition-all duration-200 ${
+                      className={`h-11 rounded-xl px-4 transition-all duration-200 ${
                         isActive 
-                          ? 'bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/50 dark:to-pink-950/50 border-l-2 border-rose-500' 
-                          : 'hover:bg-rose-50/50 dark:hover:bg-rose-950/20'
+                          ? 'bg-sidebar-accent text-sidebar-foreground font-medium' 
+                          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                       }`}
                     >
-                      <item.icon className={`${isActive ? item.color : 'text-muted-foreground'} transition-colors`} />
-                      <span className={isActive ? 'font-medium' : ''}>{item.title}</span>
+                      <item.icon className={`h-5 w-5 ${isActive ? 'text-primary' : ''}`} />
+                      <span className="text-sm">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -114,15 +107,25 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-rose-100 dark:border-rose-900/30 p-4">
-        <div className="text-center space-y-1">
-          <p className="text-[10px] text-muted-foreground">
-            Berrylicious Dashboard v1.0
-          </p>
-          <p className="text-[10px] text-muted-foreground/70">
-            Data stored locally & synced to cloud
-          </p>
+      <SidebarFooter className="p-4 mt-auto">
+        <div className="rounded-xl bg-sidebar-accent/50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground/70">
+              <span className="text-lg">🍓</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-sidebar-foreground">
+                Track your profits
+              </p>
+              <p className="text-xs text-sidebar-foreground/50 mt-0.5">
+                Keep logging sales to see insights
+              </p>
+            </div>
+          </div>
         </div>
+        <p className="text-[10px] text-sidebar-foreground/30 text-center mt-4">
+          Berrylicious Dashboard v1.0
+        </p>
       </SidebarFooter>
     </Sidebar>
   );
