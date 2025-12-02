@@ -37,17 +37,24 @@ export async function getSettings(): Promise<{
     return null;
   }
 
-  const settings: Record<string, string> = {};
+  const settings: Record<string, any> = {};
     if (data) {
       for (const row of data) {
-    settings[row.key] = row.value;
+        // JSONB values are already parsed by Supabase
+        settings[row.key] = row.value;
       }
     }
 
   let manualInventoryAdjustments: Record<string, number> = {};
   try {
     if (settings.manual_inventory_adjustments) {
-      manualInventoryAdjustments = JSON.parse(settings.manual_inventory_adjustments);
+      // If it's already an object (from JSONB), use it directly
+      // If it's a string, parse it
+      if (typeof settings.manual_inventory_adjustments === 'object') {
+        manualInventoryAdjustments = settings.manual_inventory_adjustments;
+      } else if (typeof settings.manual_inventory_adjustments === 'string') {
+        manualInventoryAdjustments = JSON.parse(settings.manual_inventory_adjustments);
+      }
     }
   } catch {
     // If parsing fails, use empty object
@@ -55,9 +62,9 @@ export async function getSettings(): Promise<{
   }
 
   return {
-    posFeePercent: parseFloat(settings.pos_fee_percent || '0'),
-    posFeeManual: parseFloat(settings.pos_fee_manual || '0'),
-    useManualPosFee: settings.use_manual_pos_fee === 'true',
+    posFeePercent: parseFloat(String(settings.pos_fee_percent || '0')),
+    posFeeManual: parseFloat(String(settings.pos_fee_manual || '0')),
+    useManualPosFee: String(settings.use_manual_pos_fee || 'false') === 'true',
     manualInventoryAdjustments,
   };
   } catch {
@@ -65,20 +72,39 @@ export async function getSettings(): Promise<{
   }
 }
 
-export async function updateSetting(key: string, value: string | number | boolean): Promise<boolean> {
+export async function updateSetting(key: string, value: string | number | boolean | object): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
   try {
-  const { error } = await supabase
-    .from('settings')
-    .upsert({ key, value: String(value) }, { onConflict: 'key' });
+    // If value is already a string (like JSON string), parse it first, then store as JSONB
+    // If value is an object, store it directly as JSONB
+    // Otherwise, convert to string and store
+    let jsonbValue: any;
+    
+    if (typeof value === 'string') {
+      // Try to parse as JSON, if it fails, store as plain string
+      try {
+        jsonbValue = JSON.parse(value);
+      } catch {
+        jsonbValue = value;
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      jsonbValue = value;
+    } else {
+      jsonbValue = String(value);
+    }
 
-  if (error) {
-    console.error('Error updating setting:', error);
-    return false;
-  }
-  return true;
-  } catch {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key, value: jsonbValue }, { onConflict: 'key' });
+
+    if (error) {
+      console.error('Error updating setting:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error in updateSetting:', error);
     return false;
   }
 }

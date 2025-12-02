@@ -126,6 +126,7 @@ export function useAppState() {
             ...supabaseData,
             products: { ...defaultProducts, ...supabaseData.products },
             ingredients: { ...defaultIngredients, ...supabaseData.ingredients },
+            manualInventoryAdjustments: supabaseData.manualInventoryAdjustments || {},
           }));
           setUseSupabase(true);
           setIsLoaded(true);
@@ -835,9 +836,25 @@ export function useAppState() {
       };
     });
 
+    // Save to localStorage immediately
+    try {
+      const currentState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      currentState.manualInventoryAdjustments = newAdjustments;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
+    } catch (error) {
+      console.error('Failed to save manual inventory to localStorage:', error);
+    }
+
+    // Save to Supabase if configured
     if (useSupabase) {
-      // Store manual adjustments in settings
-      await db.updateSetting('manual_inventory_adjustments', JSON.stringify(newAdjustments));
+      try {
+        const success = await db.updateSetting('manual_inventory_adjustments', newAdjustments);
+        if (!success) {
+          console.error('Failed to save manual inventory adjustments to Supabase');
+        }
+      } catch (error) {
+        console.error('Error saving manual inventory adjustments to Supabase:', error);
+      }
     }
   }, [useSupabase]);
 
