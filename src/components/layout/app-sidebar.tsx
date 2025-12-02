@@ -8,7 +8,10 @@ import {
   Beef,
   CreditCard,
   Cherry,
+  Store,
+  ExternalLink,
 } from 'lucide-react';
+import Link from 'next/link';
 import {
   Sidebar,
   SidebarContent,
@@ -102,23 +105,25 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4 mt-auto">
-        <div className="rounded-xl bg-sidebar-accent/50 p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground/70">
-              <span className="text-lg">🍓</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground">
-                Track your profits
-              </p>
-              <p className="text-xs text-sidebar-foreground/50 mt-0.5">
-                Keep logging sales to see insights
-              </p>
-            </div>
+      <SidebarFooter className="p-4 mt-auto space-y-3">
+        <Link 
+          href="/pos" 
+          className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-4 text-white hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg hover:shadow-xl"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+            <Store className="h-5 w-5" />
           </div>
-        </div>
-        <p className="text-[10px] text-sidebar-foreground/30 text-center mt-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">
+              Worker POS
+            </p>
+            <p className="text-xs text-white/70">
+              Open quick sale view
+            </p>
+          </div>
+          <ExternalLink className="h-4 w-4 opacity-70" />
+        </Link>
+        <p className="text-[10px] text-sidebar-foreground/30 text-center">
           Berrylicious Dashboard v1.0
         </p>
       </SidebarFooter>
