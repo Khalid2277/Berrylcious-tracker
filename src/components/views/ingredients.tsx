@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,13 +86,8 @@ export function IngredientsView() {
   const activeBatch = getActiveStrawberryBatch();
   
   // calculateInventory is a useCallback that depends on state.inventoryRemaining
-  // It will recalculate when state changes
+  // It will recalculate when state changes and component re-renders
   const inventory = calculateInventory();
-  
-  // Debug: log when inventory changes (only log, don't call calculateInventory in effect)
-  useEffect(() => {
-    console.log('Inventory remaining changed:', state.inventoryRemaining);
-  }, [state.inventoryRemaining]);
 
   const handleAddIngredient = (e: React.FormEvent) => {
     e.preventDefault();
