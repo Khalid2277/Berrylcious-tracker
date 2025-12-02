@@ -86,9 +86,12 @@ export interface AppState {
   ingredientBatches: IngredientBatch[];
   strawberryBatches: StrawberryBatch[];
   wasteEntries: WasteEntry[];
-  // Manual inventory adjustments (ingredientId -> manual remaining amount)
-  // If set, this overrides the calculated remaining amount
-  manualInventoryAdjustments: Record<string, number>;
+  // Inventory remaining amounts from database (ingredientId -> remaining amount)
+  // This is the source of truth - stored in database inventory table
+  inventoryRemaining: Record<string, number>;
+  // Deprecated: manualInventoryAdjustments - kept for backward compatibility
+  // Use inventoryRemaining instead
+  manualInventoryAdjustments?: Record<string, number>;
 }
 
 export interface ProductCombo {

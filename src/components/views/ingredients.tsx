@@ -84,14 +84,16 @@ export function IngredientsView() {
   }
 
   const activeBatch = getActiveStrawberryBatch();
-  // calculateInventory is a useCallback that depends on state.manualInventoryAdjustments
-  // It will recalculate when state changes, but we need to ensure the component re-renders
-  const inventory = calculateInventory();
   
-  // Debug: log when manual adjustments change
+  // Debug: log when inventory changes
   useEffect(() => {
-    console.log('Manual inventory adjustments changed:', state.manualInventoryAdjustments);
-  }, [state.manualInventoryAdjustments]);
+    console.log('Inventory remaining changed:', state.inventoryRemaining);
+    console.log('Current inventory calculation:', calculateInventory());
+  }, [state.inventoryRemaining, calculateInventory]);
+  
+  // calculateInventory is a useCallback that depends on state.manualInventoryAdjustments
+  // It will recalculate when state changes
+  const inventory = calculateInventory();
 
   const handleAddIngredient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -353,9 +355,9 @@ export function IngredientsView() {
                                   onClick={async () => {
                                     const value = parseFloat(manualInventoryValue);
                                     if (!isNaN(value)) {
-                                      console.log('Saving manual inventory:', inv.ingredientId, value);
+                                      console.log('Saving inventory:', inv.ingredientId, value);
                                       await updateManualInventory(inv.ingredientId, value);
-                                      console.log('State after update:', state.manualInventoryAdjustments);
+                                      console.log('State after update:', state.inventoryRemaining);
                                       toast.success('Inventory updated', {
                                         description: `${inv.name} remaining set to ${value.toLocaleString()} ${inv.unit}`,
                                       });
@@ -388,9 +390,9 @@ export function IngredientsView() {
                                 variant="ghost"
                                 className="w-full text-xs h-6 text-muted-foreground"
                                 onClick={async () => {
-                                  console.log('Resetting manual inventory:', inv.ingredientId);
+                                  console.log('Resetting inventory:', inv.ingredientId);
                                   await updateManualInventory(inv.ingredientId, null);
-                                  console.log('State after reset:', state.manualInventoryAdjustments);
+                                  console.log('State after reset:', state.inventoryRemaining);
                                   toast.success('Reset to calculated', {
                                     description: `${inv.name} will use calculated remaining amount`,
                                   });
@@ -406,7 +408,8 @@ export function IngredientsView() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">Remaining</span>
-                                  {state.manualInventoryAdjustments[inv.ingredientId] !== undefined && (
+                                  {(state.inventoryRemaining[inv.ingredientId] !== undefined || 
+                                    state.manualInventoryAdjustments?.[inv.ingredientId] !== undefined) && (
                                     <Badge variant="secondary" className="text-xs">Manual</Badge>
                                   )}
                                 </div>
@@ -418,13 +421,14 @@ export function IngredientsView() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 shrink-0"
-                                onClick={() => {
-                                  setEditingInventory(inv.ingredientId);
-                                  setManualInventoryValue(
-                                    state.manualInventoryAdjustments[inv.ingredientId]?.toString() || 
-                                    inv.remaining.toString()
-                                  );
-                                }}
+                                  onClick={() => {
+                                    setEditingInventory(inv.ingredientId);
+                                    setManualInventoryValue(
+                                      (state.inventoryRemaining[inv.ingredientId] ?? 
+                                       state.manualInventoryAdjustments?.[inv.ingredientId])?.toString() || 
+                                      inv.remaining.toString()
+                                    );
+                                  }}
                                 title="Edit remaining inventory"
                               >
                                 <Edit2 className="h-3.5 w-3.5" />

@@ -724,6 +724,84 @@ export async function addWasteEntry(entry: Omit<WasteEntry, 'id'>): Promise<Wast
   }
 }
 
+// ============================================
+// INVENTORY (remaining amounts)
+// ============================================
+
+export async function getInventory(): Promise<Record<string, number> | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('inventory')
+      .select('ingredient_id, remaining');
+
+    if (error) {
+      console.error('Error fetching inventory:', error);
+      return null;
+    }
+
+    const inventory: Record<string, number> = {};
+    if (data) {
+      for (const row of data) {
+        inventory[row.ingredient_id] = parseFloat(String(row.remaining)) || 0;
+      }
+    }
+
+    return inventory;
+  } catch (error) {
+    console.error('Error in getInventory:', error);
+    return null;
+  }
+}
+
+export async function updateInventoryRemaining(ingredientId: string, remaining: number): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+
+  try {
+    const { error } = await supabase
+      .from('inventory')
+      .upsert(
+        { 
+          ingredient_id: ingredientId, 
+          remaining: remaining 
+        },
+        { onConflict: 'ingredient_id' }
+      );
+
+    if (error) {
+      console.error('Error updating inventory:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateInventoryRemaining:', error);
+    return false;
+  }
+}
+
+export async function deleteInventoryEntry(ingredientId: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+
+  try {
+    const { error } = await supabase
+      .from('inventory')
+      .delete()
+      .eq('ingredient_id', ingredientId);
+
+    if (error) {
+      console.error('Error deleting inventory entry:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteInventoryEntry:', error);
+    return false;
+  }
+}
+
 export async function deleteWasteEntry(id: string): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
 
@@ -830,6 +908,7 @@ export async function loadAllData(): Promise<Partial<AppState> | null> {
       ingredientBatches,
       strawberryBatches,
       wasteEntries,
+      inventory,
     ] = await Promise.all([
       getSettings(),
       getProducts(),
@@ -839,6 +918,7 @@ export async function loadAllData(): Promise<Partial<AppState> | null> {
       getIngredientBatches(),
       getStrawberryBatches(),
       getWasteEntries(),
+      getInventory(),
     ]);
 
     if (!products || !sales || !fixedCosts || !ingredients || 
@@ -858,7 +938,8 @@ export async function loadAllData(): Promise<Partial<AppState> | null> {
       ingredientBatches,
       strawberryBatches,
       wasteEntries,
-      manualInventoryAdjustments: settings?.manualInventoryAdjustments || {},
+      // Use inventory from database table, fallback to manual adjustments from settings
+      inventoryRemaining: inventory || settings?.manualInventoryAdjustments || {},
     };
   } catch (error) {
     console.error('Error loading data from Supabase:', error);

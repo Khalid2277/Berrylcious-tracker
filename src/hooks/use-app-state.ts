@@ -106,6 +106,7 @@ const defaultState: AppState = {
   ingredientBatches: [],
   strawberryBatches: [],
   wasteEntries: [],
+  inventoryRemaining: {},
   manualInventoryAdjustments: {},
 };
 
@@ -126,7 +127,9 @@ export function useAppState() {
             ...supabaseData,
             products: { ...defaultProducts, ...supabaseData.products },
             ingredients: { ...defaultIngredients, ...supabaseData.ingredients },
-            manualInventoryAdjustments: supabaseData.manualInventoryAdjustments || {},
+            inventoryRemaining: supabaseData.inventoryRemaining || {},
+            // Keep manualInventoryAdjustments for backward compatibility
+            manualInventoryAdjustments: supabaseData.manualInventoryAdjustments || supabaseData.inventoryRemaining || {},
           }));
           setUseSupabase(true);
           setIsLoaded(true);
@@ -164,7 +167,8 @@ export function useAppState() {
             useManualPosFee: parsed.useManualPosFee ?? false,
             ingredients: { ...defaultIngredients, ...parsed.ingredients },
             products: mergedProducts,
-            manualInventoryAdjustments: parsed.manualInventoryAdjustments ?? {},
+            inventoryRemaining: parsed.inventoryRemaining ?? parsed.manualInventoryAdjustments ?? {},
+            manualInventoryAdjustments: parsed.manualInventoryAdjustments ?? parsed.inventoryRemaining ?? {},
           });
         }
         console.log('Using localStorage (Supabase not configured)');
@@ -642,9 +646,12 @@ export function useAppState() {
       : (strawberryIng?.defaultBulkQty > 0 ? strawberryIng.defaultBulkCost / strawberryIng.defaultBulkQty : 0);
     
     const calculatedStrawberryRemaining = strawberryPurchased - usage.strawberriesG - strawberryWasted;
-    const strawberryRemaining = state.manualInventoryAdjustments['strawberry'] !== undefined
-      ? state.manualInventoryAdjustments['strawberry']
-      : calculatedStrawberryRemaining;
+    // Use database inventory if available, otherwise fallback to manual adjustments or calculated
+    const strawberryRemaining = state.inventoryRemaining['strawberry'] !== undefined
+      ? state.inventoryRemaining['strawberry']
+      : (state.manualInventoryAdjustments?.['strawberry'] !== undefined
+        ? state.manualInventoryAdjustments['strawberry']
+        : calculatedStrawberryRemaining);
     
     inventory.push({
       ingredientId: 'strawberry',
@@ -682,9 +689,12 @@ export function useAppState() {
         : (ing.defaultBulkQty > 0 ? ing.defaultBulkCost / ing.defaultBulkQty : 0);
 
       const calculatedRemaining = purchased - used - wasted;
-      const remaining = state.manualInventoryAdjustments[id] !== undefined
-        ? state.manualInventoryAdjustments[id]
-        : calculatedRemaining;
+      // Use database inventory if available, otherwise fallback to manual adjustments or calculated
+      const remaining = state.inventoryRemaining[id] !== undefined
+        ? state.inventoryRemaining[id]
+        : (state.manualInventoryAdjustments?.[id] !== undefined
+          ? state.manualInventoryAdjustments[id]
+          : calculatedRemaining);
 
       inventory.push({
         ingredientId: id,
@@ -700,7 +710,7 @@ export function useAppState() {
     });
 
     return inventory;
-  }, [state.ingredients, state.ingredientBatches, state.strawberryBatches, state.wasteEntries, state.manualInventoryAdjustments, calculateIngredientUsage]);
+  }, [state.ingredients, state.ingredientBatches, state.strawberryBatches, state.wasteEntries, state.inventoryRemaining, state.manualInventoryAdjustments, calculateIngredientUsage]);
 
   const calculateDashboardStats = useCallback((): DashboardStats => {
     let grossRevenue = 0;
@@ -820,50 +830,67 @@ export function useAppState() {
   // ============================================
 
   const updateManualInventory = useCallback(async (ingredientId: string, remaining: number | null) => {
-    let newAdjustments: Record<string, number> = {};
+    let newInventory: Record<string, number> = {};
     
     // Update state - this will trigger a re-render
     setState(prev => {
-      // Create a completely new adjustments object
-      newAdjustments = { ...prev.manualInventoryAdjustments };
+      // Create a completely new inventory object
+      newInventory = { ...prev.inventoryRemaining };
       
       if (remaining === null || remaining === undefined) {
-        // Remove manual adjustment to use calculated value
-        const { [ingredientId]: _, ...rest } = newAdjustments;
-        newAdjustments = rest;
+        // Remove inventory entry to use calculated value
+        const { [ingredientId]: _, ...rest } = newInventory;
+        newInventory = rest;
       } else {
-        newAdjustments = { ...newAdjustments, [ingredientId]: remaining };
+        newInventory = { ...newInventory, [ingredientId]: remaining };
       }
       
-      console.log('Updating manual inventory:', ingredientId, remaining, newAdjustments);
+      console.log('Updating inventory - BEFORE:', ingredientId, remaining, prev.inventoryRemaining);
+      console.log('Updating inventory - AFTER:', ingredientId, remaining, newInventory);
       
       // Return completely new state object to ensure React detects the change
-      return {
+      const newState = {
         ...prev,
-        manualInventoryAdjustments: newAdjustments,
+        inventoryRemaining: newInventory,
+        // Also update manualInventoryAdjustments for backward compatibility
+        manualInventoryAdjustments: { ...newInventory },
       };
+      console.log('New state inventoryRemaining:', newState.inventoryRemaining);
+      return newState;
     });
 
-    // Save to localStorage - use the new adjustments
+    // Save to localStorage - use the new inventory
     try {
       const currentState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      currentState.manualInventoryAdjustments = { ...newAdjustments };
+      currentState.inventoryRemaining = { ...newInventory };
+      currentState.manualInventoryAdjustments = { ...newInventory }; // Backward compatibility
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
     } catch (error) {
-      console.error('Failed to save manual inventory to localStorage:', error);
+      console.error('Failed to save inventory to localStorage:', error);
     }
 
-    // Save to Supabase if configured
+    // Save to Supabase inventory table if configured
     if (useSupabase) {
       try {
-        const success = await db.updateSetting('manual_inventory_adjustments', { ...newAdjustments });
-        if (!success) {
-          console.error('Failed to save manual inventory adjustments to Supabase');
+        if (remaining === null || remaining === undefined) {
+          // Delete from database
+          const success = await db.deleteInventoryEntry(ingredientId);
+          if (!success) {
+            console.error('Failed to delete inventory entry from Supabase');
+          } else {
+            console.log('✓ Inventory entry deleted from Supabase');
+          }
         } else {
-          console.log('✓ Manual inventory adjustments saved to Supabase');
+          // Update in database
+          const success = await db.updateInventoryRemaining(ingredientId, remaining);
+          if (!success) {
+            console.error('Failed to save inventory to Supabase');
+          } else {
+            console.log('✓ Inventory saved to Supabase');
+          }
         }
       } catch (error) {
-        console.error('Error saving manual inventory adjustments to Supabase:', error);
+        console.error('Error saving inventory to Supabase:', error);
       }
     }
   }, [useSupabase]);
