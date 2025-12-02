@@ -85,15 +85,14 @@ export function IngredientsView() {
 
   const activeBatch = getActiveStrawberryBatch();
   
-  // Debug: log when inventory changes
-  useEffect(() => {
-    console.log('Inventory remaining changed:', state.inventoryRemaining);
-    console.log('Current inventory calculation:', calculateInventory());
-  }, [state.inventoryRemaining, calculateInventory]);
-  
-  // calculateInventory is a useCallback that depends on state.manualInventoryAdjustments
+  // calculateInventory is a useCallback that depends on state.inventoryRemaining
   // It will recalculate when state changes
   const inventory = calculateInventory();
+  
+  // Debug: log when inventory changes (only log, don't call calculateInventory in effect)
+  useEffect(() => {
+    console.log('Inventory remaining changed:', state.inventoryRemaining);
+  }, [state.inventoryRemaining]);
 
   const handleAddIngredient = (e: React.FormEvent) => {
     e.preventDefault();
