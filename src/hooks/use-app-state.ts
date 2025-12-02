@@ -822,24 +822,32 @@ export function useAppState() {
   const updateManualInventory = useCallback(async (ingredientId: string, remaining: number | null) => {
     let newAdjustments: Record<string, number> = {};
     
+    // Update state - this will trigger a re-render
     setState(prev => {
+      // Create a completely new adjustments object
       newAdjustments = { ...prev.manualInventoryAdjustments };
+      
       if (remaining === null || remaining === undefined) {
         // Remove manual adjustment to use calculated value
-        delete newAdjustments[ingredientId];
+        const { [ingredientId]: _, ...rest } = newAdjustments;
+        newAdjustments = rest;
       } else {
-        newAdjustments[ingredientId] = remaining;
+        newAdjustments = { ...newAdjustments, [ingredientId]: remaining };
       }
+      
+      console.log('Updating manual inventory:', ingredientId, remaining, newAdjustments);
+      
+      // Return completely new state object to ensure React detects the change
       return {
         ...prev,
         manualInventoryAdjustments: newAdjustments,
       };
     });
 
-    // Save to localStorage immediately
+    // Save to localStorage - use the new adjustments
     try {
       const currentState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      currentState.manualInventoryAdjustments = newAdjustments;
+      currentState.manualInventoryAdjustments = { ...newAdjustments };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
     } catch (error) {
       console.error('Failed to save manual inventory to localStorage:', error);
@@ -848,9 +856,11 @@ export function useAppState() {
     // Save to Supabase if configured
     if (useSupabase) {
       try {
-        const success = await db.updateSetting('manual_inventory_adjustments', newAdjustments);
+        const success = await db.updateSetting('manual_inventory_adjustments', { ...newAdjustments });
         if (!success) {
           console.error('Failed to save manual inventory adjustments to Supabase');
+        } else {
+          console.log('✓ Manual inventory adjustments saved to Supabase');
         }
       } catch (error) {
         console.error('Error saving manual inventory adjustments to Supabase:', error);

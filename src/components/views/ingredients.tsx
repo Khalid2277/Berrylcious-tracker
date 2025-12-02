@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +84,15 @@ export function IngredientsView() {
   }
 
   const activeBatch = getActiveStrawberryBatch();
-  const inventory = calculateInventory();
+  // Use useMemo to ensure inventory recalculates when relevant state changes
+  // calculateInventory already depends on state.manualInventoryAdjustments, so it will update
+  const inventory = useMemo(() => {
+    return calculateInventory();
+  }, [
+    calculateInventory,
+    // Explicitly include manualInventoryAdjustments to ensure recalculation
+    JSON.stringify(state.manualInventoryAdjustments),
+  ]);
 
   const handleAddIngredient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -350,6 +358,11 @@ export function IngredientsView() {
                                       toast.success('Inventory updated', {
                                         description: `${inv.name} remaining set to ${value.toLocaleString()} ${inv.unit}`,
                                       });
+                                    } else {
+                                      toast.error('Invalid value', {
+                                        description: 'Please enter a valid number',
+                                      });
+                                      return;
                                     }
                                     setEditingInventory(null);
                                     setManualInventoryValue('');
