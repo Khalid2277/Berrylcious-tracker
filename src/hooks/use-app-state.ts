@@ -607,11 +607,18 @@ export function useAppState() {
     const usage = calculateIngredientUsage();
     const inventory: IngredientInventory[] = [];
 
+    // Strawberry handling
     const strawberryPurchased = state.strawberryBatches.reduce((sum, b) => sum + b.bulkWeightG, 0);
     const strawberryWasted = state.wasteEntries
       .filter(w => w.ingredientId === 'strawberry')
       .reduce((sum, w) => sum + w.qty, 0);
     const strawberryCost = state.strawberryBatches.reduce((sum, b) => sum + b.bulkCost, 0);
+    const strawberryIng = state.ingredients['strawberry'];
+    
+    // Use default cost if no batches exist
+    const strawberryCostPerUnit = strawberryPurchased > 0 
+      ? strawberryCost / strawberryPurchased 
+      : (strawberryIng?.defaultBulkQty > 0 ? strawberryIng.defaultBulkCost / strawberryIng.defaultBulkQty : 0);
     
     inventory.push({
       ingredientId: 'strawberry',
@@ -622,7 +629,7 @@ export function useAppState() {
       remaining: strawberryPurchased - usage.strawberriesG - strawberryWasted,
       unit: 'g',
       totalCost: strawberryCost,
-      costPerUnit: strawberryPurchased > 0 ? strawberryCost / strawberryPurchased : 0,
+      costPerUnit: strawberryCostPerUnit,
     });
 
     const ingredientUsageMap: Record<string, number> = {
@@ -643,6 +650,11 @@ export function useAppState() {
         .reduce((sum, w) => sum + w.qty, 0);
       const used = ingredientUsageMap[id] || 0;
 
+      // Use default cost if no batches exist
+      const costPerUnit = purchased > 0 
+        ? cost / purchased 
+        : (ing.defaultBulkQty > 0 ? ing.defaultBulkCost / ing.defaultBulkQty : 0);
+
       inventory.push({
         ingredientId: id,
         name: ing.name,
@@ -652,7 +664,7 @@ export function useAppState() {
         remaining: purchased - used - wasted,
         unit: ing.unit,
         totalCost: cost,
-        costPerUnit: purchased > 0 ? cost / purchased : 0,
+        costPerUnit: costPerUnit,
       });
     });
 
@@ -664,19 +676,19 @@ export function useAppState() {
     let revenueExcludingRocky = 0;
     let tipsRevenue = 0;
     let rockyDeduction = 0;
-    let totalVarCost = 0;
     let totalCups = 0;
 
     const usage = calculateIngredientUsage();
     const inventory = calculateInventory();
+
+    // Calculate total variable cost as sum of all ingredient purchases
+    const totalVarCost = inventory.reduce((sum, inv) => sum + inv.totalCost, 0);
 
     state.sales.forEach(sale => {
       const product = state.products[sale.productId];
       if (!product) return;
 
       const revenue = sale.qty * sale.unitPrice;
-      const costPerCup = calculateCostPerCup(product, sale.date);
-      const varCost = sale.qty * costPerCup;
 
       grossRevenue += revenue;
       if (sale.productId === 'tips') {
@@ -690,7 +702,6 @@ export function useAppState() {
       if (sale.productId !== 'rocky') {
         revenueExcludingRocky += revenue;
       }
-      totalVarCost += varCost;
       totalCups += sale.qty;
     });
 
@@ -743,7 +754,7 @@ export function useAppState() {
       sticksRemaining: sticksInv?.remaining || 0,
       totalWasteCost,
     };
-  }, [state, calculateIngredientUsage, calculateInventory, calculateCostPerCup]);
+  }, [state, calculateIngredientUsage, calculateInventory]);
 
   const formatCurrency = useCallback((amount: number): string => {
     return new Intl.NumberFormat('en-AE', {

@@ -251,53 +251,38 @@ export function DashboardOverview() {
 
             <Separator />
 
-            {/* Variable Costs Section */}
+            {/* Variable Costs Section - Total Spent on Ingredients */}
             <div>
-              <h4 className="font-semibold text-sm text-muted-foreground mb-3">VARIABLE COSTS (COGS)</h4>
+              <h4 className="font-semibold text-sm text-muted-foreground mb-3">VARIABLE COSTS (PURCHASES)</h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                   <span>Strawberries</span>
                   <span className="font-medium">
-                    {formatCurrency(
-                      (inventory.find(i => i.ingredientId === 'strawberry')?.totalCost || 0) * 
-                      (stats.strawberriesUsedG / (inventory.find(i => i.ingredientId === 'strawberry')?.totalPurchased || 1))
-                    )}
+                    {formatCurrency(inventory.find(i => i.ingredientId === 'strawberry')?.totalCost || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                   <span>Chocolate</span>
                   <span className="font-medium">
-                    {formatCurrency(
-                      (inventory.find(i => i.ingredientId === 'chocolate')?.totalCost || 0) * 
-                      (stats.chocolateUsedG / (inventory.find(i => i.ingredientId === 'chocolate')?.totalPurchased || 1))
-                    )}
+                    {formatCurrency(inventory.find(i => i.ingredientId === 'chocolate')?.totalCost || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                   <span>Kunafa</span>
                   <span className="font-medium">
-                    {formatCurrency(
-                      (inventory.find(i => i.ingredientId === 'kunafa')?.totalCost || 0) * 
-                      (stats.kunafaUsedG / (inventory.find(i => i.ingredientId === 'kunafa')?.totalPurchased || 1))
-                    )}
+                    {formatCurrency(inventory.find(i => i.ingredientId === 'kunafa')?.totalCost || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                   <span>Cups</span>
                   <span className="font-medium">
-                    {formatCurrency(
-                      (inventory.find(i => i.ingredientId === 'cup')?.totalCost || 0) * 
-                      (stats.cupsUsed / (inventory.find(i => i.ingredientId === 'cup')?.totalPurchased || 1))
-                    )}
+                    {formatCurrency(inventory.find(i => i.ingredientId === 'cup')?.totalCost || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                   <span>Sticks</span>
                   <span className="font-medium">
-                    {formatCurrency(
-                      (inventory.find(i => i.ingredientId === 'sticks')?.totalCost || 0) * 
-                      (stats.sticksUsed / (inventory.find(i => i.ingredientId === 'sticks')?.totalPurchased || 1))
-                    )}
+                    {formatCurrency(inventory.find(i => i.ingredientId === 'sticks')?.totalCost || 0)}
                   </span>
                 </div>
               </div>
@@ -391,6 +376,46 @@ export function DashboardOverview() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Breakeven Status */}
+            <div className={`p-4 rounded-xl ${stats.remainingToBreakeven === 0 ? 'bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-950/40 dark:to-emerald-950/40 border-2 border-green-400' : 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-400'}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-base">
+                    {stats.remainingToBreakeven === 0 ? '🎉 Breakeven Achieved!' : '📊 Breakeven Status'}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {stats.remainingToBreakeven === 0 
+                      ? 'You have covered all your fixed costs!'
+                      : 'Amount needed to cover fixed costs'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className={`font-bold text-2xl ${stats.remainingToBreakeven === 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                    {stats.remainingToBreakeven === 0 
+                      ? '✓' 
+                      : formatCurrency(stats.remainingToBreakeven)}
+                  </span>
+                  {stats.remainingToBreakeven > 0 && (
+                    <p className="text-xs text-muted-foreground">remaining</p>
+                  )}
+                </div>
+              </div>
+              {stats.remainingToBreakeven > 0 && stats.totalCups > 0 && (
+                <div className="mt-3 pt-3 border-t border-amber-300/50">
+                  <div className="flex justify-between text-sm">
+                    <span>Average profit per cup</span>
+                    <span>{formatCurrency(stats.profitBeforeFixed / stats.totalCups)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span>Estimated cups to breakeven</span>
+                    <span className="font-medium">
+                      ~{Math.ceil(stats.remainingToBreakeven / (stats.profitBeforeFixed / stats.totalCups || 1))} cups
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
