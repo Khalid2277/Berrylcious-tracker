@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS sales (
   product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   qty INTEGER NOT NULL DEFAULT 1,
   unit_price DECIMAL(10, 2) NOT NULL,
+  source TEXT DEFAULT 'manual' CHECK (source IN ('pos', 'manual')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
