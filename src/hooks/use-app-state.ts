@@ -724,10 +724,12 @@ export function useAppState() {
       }
       totalCups += sale.qty;
 
-      // Track POS transaction revenue (group by transactionId)
-      if (sale.source === 'pos' && sale.transactionId) {
-        const currentTotal = posTransactions.get(sale.transactionId) || 0;
-        posTransactions.set(sale.transactionId, currentTotal + revenue);
+      // Track POS transaction revenue (group by transactionId, or use sale.id if no transactionId)
+      if (sale.source === 'pos') {
+        // Use transactionId if available, otherwise use sale.id as unique identifier
+        const transactionKey = sale.transactionId || sale.id;
+        const currentTotal = posTransactions.get(transactionKey) || 0;
+        posTransactions.set(transactionKey, currentTotal + revenue);
       }
     });
 

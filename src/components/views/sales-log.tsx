@@ -157,13 +157,17 @@ export function SalesLog() {
   const sortedSales = [...state.sales].sort((a, b) => a.date.localeCompare(b.date));
   
   // Group POS sales by transactionId to calculate fees per transaction
+  // If transactionId exists, group by it. If not, treat each sale as its own transaction.
   const posTransactions = new Map<string, { sales: typeof sortedSales; totalRevenue: number }>();
   sortedSales.forEach(sale => {
-    if (sale.source === 'pos' && sale.transactionId) {
-      if (!posTransactions.has(sale.transactionId)) {
-        posTransactions.set(sale.transactionId, { sales: [], totalRevenue: 0 });
+    if (sale.source === 'pos') {
+      // Use transactionId if available, otherwise use sale.id as unique identifier
+      const transactionKey = sale.transactionId || sale.id;
+      
+      if (!posTransactions.has(transactionKey)) {
+        posTransactions.set(transactionKey, { sales: [], totalRevenue: 0 });
       }
-      const transaction = posTransactions.get(sale.transactionId)!;
+      const transaction = posTransactions.get(transactionKey)!;
       transaction.sales.push(sale);
       transaction.totalRevenue += sale.qty * sale.unitPrice;
     }
@@ -188,12 +192,14 @@ export function SalesLog() {
     
     // Calculate auto POS fee: only once per transaction, shown on first item
     let autoPosFee = 0;
-    if (sale.source === 'pos' && sale.transactionId) {
-      const transactionFee = transactionFees.get(sale.transactionId) || 0;
+    if (sale.source === 'pos') {
+      // Use transactionId if available, otherwise use sale.id as unique identifier
+      const transactionKey = sale.transactionId || sale.id;
+      const transactionFee = transactionFees.get(transactionKey) || 0;
       // Show fee only on the first sale of each transaction
-      if (!transactionFeeApplied.has(sale.transactionId)) {
+      if (!transactionFeeApplied.has(transactionKey)) {
         autoPosFee = transactionFee;
-        transactionFeeApplied.add(sale.transactionId);
+        transactionFeeApplied.add(transactionKey);
       }
     }
     
