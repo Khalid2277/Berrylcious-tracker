@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAppState } from '@/hooks/use-app-state';
 import { toast } from '@/components/ui/sonner';
 import { PageSkeleton } from '@/components/ui/loading-skeleton';
-import { ShoppingBag, Plus, Trash2, TrendingUp, TrendingDown, Target, Download } from 'lucide-react';
+import { ShoppingBag, Plus, Trash2, Target, Download, Filter, Store, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function SalesLog() {
@@ -54,12 +54,19 @@ export function SalesLog() {
   const [qty, setQty] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
   const [error, setError] = useState('');
+  const [dateFilter, setDateFilter] = useState<string>('all');
 
   if (!isLoaded) {
     return <PageSkeleton />;
   }
 
   const fixedTotal = state.fixedCosts.reduce((sum, c) => sum + c.amount, 0);
+
+  // Get unique dates from sales for filter
+  const uniqueDates = useMemo(() => {
+    const dates = [...new Set(state.sales.map(s => s.date))].sort().reverse();
+    return dates;
+  }, [state.sales]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +86,7 @@ export function SalesLog() {
       productId,
       qty: qtyNum,
       unitPrice: priceNum,
+      source: 'manual', // Manual entry from sales log
     });
 
     toast.success('Sale recorded', {
@@ -106,19 +114,25 @@ export function SalesLog() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Date', 'Product', 'Quantity', 'Unit Price', 'Revenue', 'Cost/Cup', 'Profit'];
+    const headers = ['Date', 'Product', 'Quantity', 'Unit Price', 'Revenue', 'Source', 'POS Fee', 'Net Revenue', 'Cost', 'Profit'];
     const rows = sortedSales.map(sale => {
       const product = state.products[sale.productId];
       const revenue = sale.qty * sale.unitPrice;
       const costPerCup = product ? calculateCostPerCup(product, sale.date) : 0;
-      const profit = revenue - (sale.qty * costPerCup);
+      const posFee = sale.source === 'pos' ? (1 + revenue * 0.026) : 0;
+      const netRevenue = revenue - posFee;
+      const cost = sale.qty * costPerCup;
+      const profit = netRevenue - cost;
       return [
         sale.date,
         product?.name || sale.productId,
         sale.qty,
         sale.unitPrice.toFixed(2),
         revenue.toFixed(2),
-        costPerCup.toFixed(2),
+        sale.source || 'manual',
+        posFee.toFixed(2),
+        netRevenue.toFixed(2),
+        cost.toFixed(2),
         profit.toFixed(2),
       ];
     });
@@ -146,12 +160,17 @@ export function SalesLog() {
   const salesWithCalculations = sortedSales.map((sale, index) => {
     const product = state.products[sale.productId];
     const revenue = sale.qty * sale.unitPrice;
+    
+    // Calculate auto POS fee for POS-sourced transactions: AED 1 + 2.6%
+    const autoPosFee = sale.source === 'pos' ? (1 + revenue * 0.026) : 0;
+    const netRevenue = revenue - autoPosFee;
+    
     // Use the sale date to get the correct batch for cost calculation
     const costPerCup = product ? calculateCostPerCup(product, sale.date) : 0;
     const varCost = sale.qty * costPerCup;
-    const profitBeforeFixed = revenue - varCost;
+    const profitBeforeFixed = netRevenue - varCost;
     
-    cumulativeRevenue += revenue;
+    cumulativeRevenue += netRevenue;
     cumulativeProfit += profitBeforeFixed;
     
     const netAfterFixed = cumulativeProfit - fixedTotal;
@@ -178,6 +197,8 @@ export function SalesLog() {
       index: index + 1,
       product,
       revenue,
+      autoPosFee,
+      netRevenue,
       costPerCup,
       varCost,
       profitBeforeFixed,
@@ -193,13 +214,24 @@ export function SalesLog() {
     };
   });
 
+  // Filter by date
+  const filteredSales = dateFilter === 'all' 
+    ? salesWithCalculations 
+    : salesWithCalculations.filter(s => s.sale.date === dateFilter);
+
   // Reverse for display (newest first)
-  const displaySales = [...salesWithCalculations].reverse();
+  const displaySales = [...filteredSales].reverse();
 
   // Calculate preview cost using selected date
   const previewCost = productId && saleDate
     ? calculateCostPerCup(state.products[productId], saleDate)
     : 0;
+
+  // Calculate totals for filtered view
+  const filteredTotalRevenue = filteredSales.reduce((sum, s) => sum + s.netRevenue, 0);
+  const filteredTotalPosFees = filteredSales.reduce((sum, s) => sum + s.autoPosFee, 0);
+  const filteredTotalCost = filteredSales.reduce((sum, s) => sum + s.varCost, 0);
+  const filteredTotalProfit = filteredSales.reduce((sum, s) => sum + s.profitBeforeFixed, 0);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -228,9 +260,9 @@ export function SalesLog() {
         <CardHeader className="p-3 sm:p-6">
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add New Sale
+            Add New Sale (Manual)
           </CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Record a new sale - costs use batch prices from sale date</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">Manual entries don't have auto POS fees</CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
           <form onSubmit={handleSubmit} className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-5">
@@ -337,10 +369,33 @@ export function SalesLog() {
       {/* Sales Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Sales History</CardTitle>
-          <CardDescription>
-            {sortedSales.length} sale{sortedSales.length !== 1 ? 's' : ''} recorded with full P&L tracking
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">Sales History</CardTitle>
+              <CardDescription>
+                {displaySales.length} sale{displaySales.length !== 1 ? 's' : ''} 
+                {dateFilter !== 'all' && ` on ${dateFilter}`}
+              </CardDescription>
+            </div>
+            
+            {/* Date Filter */}
+            {uniqueDates.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Filter by date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All dates</SelectItem>
+                    {uniqueDates.map(date => (
+                      <SelectItem key={date} value={date}>{date}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {sortedSales.length === 0 ? (
@@ -348,6 +403,11 @@ export function SalesLog() {
               <ShoppingBag className="h-12 w-12 mx-auto mb-4 opacity-20" />
               <p className="font-medium">No sales recorded yet</p>
               <p className="text-sm mt-1">Add your first sale above to get started!</p>
+            </div>
+          ) : displaySales.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p className="font-medium">No sales on this date</p>
+              <p className="text-sm mt-1">Select a different date or "All dates"</p>
             </div>
           ) : (
             <div className="overflow-x-auto scrollbar-thin">
@@ -357,11 +417,12 @@ export function SalesLog() {
                     <TableHead className="w-8">#</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Product</TableHead>
+                    <TableHead>Source</TableHead>
                     <TableHead className="text-right">Qty</TableHead>
                     <TableHead className="text-right">Revenue</TableHead>
+                    <TableHead className="text-right">POS Fee</TableHead>
                     <TableHead className="text-right">Cost</TableHead>
                     <TableHead className="text-right">Profit</TableHead>
-                    <TableHead className="text-right">Breakeven</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -375,18 +436,35 @@ export function SalesLog() {
                           {row.product?.name || row.sale.productId}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {row.sale.source === 'pos' ? (
+                          <Badge variant="outline" className="text-xs gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                            <Store className="h-3 w-3" />
+                            POS
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs gap-1 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+                            <Pencil className="h-3 w-3" />
+                            Manual
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right text-sm">{row.sale.qty}</TableCell>
                       <TableCell className="text-right font-medium text-green-600 text-sm">
                         {formatCurrency(row.revenue)}
+                      </TableCell>
+                      <TableCell className="text-right text-sm">
+                        {row.autoPosFee > 0 ? (
+                          <span className="text-orange-600">-{formatCurrency(row.autoPosFee)}</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right text-red-600 text-sm">
                         {formatCurrency(row.varCost)}
                       </TableCell>
                       <TableCell className={`text-right font-medium text-sm ${row.profitBeforeFixed >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(row.profitBeforeFixed)}
-                      </TableCell>
-                      <TableCell className={`text-right text-sm ${row.remainingToBreakeven > 0 ? 'text-amber-600' : 'text-green-600'}`}>
-                        {row.remainingToBreakeven > 0 ? formatCurrency(row.remainingToBreakeven) : '✓'}
                       </TableCell>
                       <TableCell>
                         <AlertDialog>
@@ -428,58 +506,71 @@ export function SalesLog() {
       </Card>
 
       {/* Summary Cards */}
-      {sortedSales.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-4">
+      {displaySales.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-5">
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Total Revenue</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">
+                {dateFilter !== 'all' ? 'Day Revenue' : 'Total Revenue'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(salesWithCalculations[salesWithCalculations.length - 1]?.cumulativeRevenue || 0)}
+                {formatCurrency(filteredTotalRevenue)}
               </div>
             </CardContent>
           </Card>
-          <Card>
+          
+          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-800">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Total Profit (Before Fixed)</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">Auto POS Fees</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(salesWithCalculations[salesWithCalculations.length - 1]?.cumulativeProfit || 0)}
+              <div className="text-2xl font-bold text-orange-600">
+                {formatCurrency(filteredTotalPosFees)}
               </div>
+              <p className="text-xs text-muted-foreground">AED 1 + 2.6%</p>
             </CardContent>
           </Card>
+          
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Fixed Costs</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">Total Cost</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(fixedTotal)}
+              <div className="text-2xl font-bold text-red-600">
+                {formatCurrency(filteredTotalCost)}
               </div>
             </CardContent>
           </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                {dateFilter !== 'all' ? 'Day Profit' : 'Total Profit'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${filteredTotalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(filteredTotalProfit)}
+              </div>
+            </CardContent>
+          </Card>
+          
           <Card className={salesWithCalculations[salesWithCalculations.length - 1]?.isBreakeven ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800' : ''}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                 <Target className="h-4 w-4" />
-                Break-even Status
+                Break-even
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${salesWithCalculations[salesWithCalculations.length - 1]?.isBreakeven ? 'text-green-600' : 'text-amber-600'}`}>
                 {salesWithCalculations[salesWithCalculations.length - 1]?.isBreakeven 
-                  ? '✓ Achieved!'
+                  ? '✓ Yes!'
                   : formatCurrency(salesWithCalculations[salesWithCalculations.length - 1]?.remainingToBreakeven || fixedTotal)
                 }
               </div>
-              <p className="text-xs text-muted-foreground">
-                {salesWithCalculations[salesWithCalculations.length - 1]?.isBreakeven 
-                  ? 'Profitable zone reached'
-                  : 'Remaining to break-even'
-                }
-              </p>
             </CardContent>
           </Card>
         </div>
@@ -487,3 +578,4 @@ export function SalesLog() {
     </div>
   );
 }
+
