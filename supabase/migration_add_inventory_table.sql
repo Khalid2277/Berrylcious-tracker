@@ -28,10 +28,7 @@ CREATE TRIGGER update_inventory_updated_at
   BEFORE UPDATE ON inventory
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Initialize inventory for existing ingredients (optional - can be done via app)
--- This sets initial remaining to 0, which will be calculated/updated by the app
-INSERT INTO inventory (ingredient_id, remaining)
-SELECT id, 0
-FROM ingredients
-ON CONFLICT (ingredient_id) DO NOTHING;
+-- Note: Do NOT initialize inventory with default values
+-- Inventory will be calculated automatically from purchases - used - wasted
+-- Only manually overridden values will be stored in this table
 

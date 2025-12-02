@@ -646,8 +646,10 @@ export function useAppState() {
       : (strawberryIng?.defaultBulkQty > 0 ? strawberryIng.defaultBulkCost / strawberryIng.defaultBulkQty : 0);
     
     const calculatedStrawberryRemaining = strawberryPurchased - usage.strawberriesG - strawberryWasted;
-    // Use database inventory if available, otherwise fallback to manual adjustments or calculated
-    const strawberryRemaining = state.inventoryRemaining['strawberry'] !== undefined
+    // Use manual override from database if set, otherwise calculate automatically
+    // Check if value exists AND is not null/undefined (0 is a valid override value)
+    const hasManualOverride = state.inventoryRemaining['strawberry'] !== undefined;
+    const strawberryRemaining = hasManualOverride
       ? state.inventoryRemaining['strawberry']
       : (state.manualInventoryAdjustments?.['strawberry'] !== undefined
         ? state.manualInventoryAdjustments['strawberry']
@@ -689,8 +691,10 @@ export function useAppState() {
         : (ing.defaultBulkQty > 0 ? ing.defaultBulkCost / ing.defaultBulkQty : 0);
 
       const calculatedRemaining = purchased - used - wasted;
-      // Use database inventory if available, otherwise fallback to manual adjustments or calculated
-      const remaining = state.inventoryRemaining[id] !== undefined
+      // Use manual override from database if set, otherwise calculate automatically
+      // Check if value exists AND is not null/undefined (0 is a valid override value)
+      const hasManualOverride = state.inventoryRemaining[id] !== undefined;
+      const remaining = hasManualOverride
         ? state.inventoryRemaining[id]
         : (state.manualInventoryAdjustments?.[id] !== undefined
           ? state.manualInventoryAdjustments[id]
@@ -710,7 +714,16 @@ export function useAppState() {
     });
 
     return inventory;
-  }, [state.ingredients, state.ingredientBatches, state.strawberryBatches, state.wasteEntries, state.inventoryRemaining, state.manualInventoryAdjustments, calculateIngredientUsage]);
+  }, [
+    state.ingredients, 
+    state.ingredientBatches, 
+    state.strawberryBatches, 
+    state.wasteEntries, 
+    state.sales, // Include sales so calculation updates when sales change
+    state.inventoryRemaining, 
+    state.manualInventoryAdjustments, 
+    calculateIngredientUsage
+  ]);
 
   const calculateDashboardStats = useCallback((): DashboardStats => {
     let grossRevenue = 0;

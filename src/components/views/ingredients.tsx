@@ -403,8 +403,10 @@ export function IngredientsView() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">Remaining</span>
                                   {(state.inventoryRemaining[inv.ingredientId] !== undefined || 
-                                    state.manualInventoryAdjustments?.[inv.ingredientId] !== undefined) && (
+                                    state.manualInventoryAdjustments?.[inv.ingredientId] !== undefined) ? (
                                     <Badge variant="secondary" className="text-xs">Manual</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-xs text-muted-foreground">Auto</Badge>
                                   )}
                                 </div>
                                 <span className={`text-sm font-medium ${isNegative ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-green-600'}`}>
