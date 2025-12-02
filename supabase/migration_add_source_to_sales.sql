@@ -8,3 +8,4 @@ ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual' CHECK (source IN ('pos', '
 -- Update existing sales to have 'manual' as default (they already have NULL which will become 'manual')
 UPDATE sales SET source = 'manual' WHERE source IS NULL;
 
+

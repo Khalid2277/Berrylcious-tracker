@@ -272,7 +272,8 @@ export function DashboardOverview() {
 
             {/* Variable Costs Section - Total Spent on Ingredients */}
             <div>
-              <h4 className="font-semibold text-sm text-muted-foreground mb-3">VARIABLE COSTS (PURCHASES)</h4>
+              <h4 className="font-semibold text-sm text-muted-foreground mb-3">TOTAL VARIABLE COST (TOTAL PURCHASES)</h4>
+              <p className="text-xs text-muted-foreground mb-3">Sum of all ingredient batch purchases</p>
               <div className="space-y-2">
                 <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                   <span>Strawberries</span>
@@ -306,7 +307,7 @@ export function DashboardOverview() {
                 </div>
               </div>
               <div className="flex justify-between items-center mt-3 pt-3 border-t font-semibold">
-                <span>Total Variable Costs</span>
+                <span>Total Variable Cost (Sum of Purchases)</span>
                 <span className="text-red-600">{formatCurrency(stats.totalVarCost)}</span>
               </div>
             </div>
@@ -363,7 +364,7 @@ export function DashboardOverview() {
                   <span>{formatCurrency(stats.totalRevenue)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>− Variable Costs</span>
+                  <span>− Total Variable Cost (Purchases)</span>
                   <span>-{formatCurrency(stats.totalVarCost)}</span>
                 </div>
                 <div className="flex justify-between">
