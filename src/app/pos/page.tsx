@@ -87,8 +87,12 @@ export default function POSPage() {
     }
 
     const today = format(new Date(), 'yyyy-MM-dd');
+    // Generate a unique transaction ID for this order
+    // All items in this order will share the same transactionId
+    const transactionId = 'txn_' + Date.now() + '_' + Math.random().toString(16).slice(2);
 
-    // Add each item as a separate sale (marked as POS source for automatic fee calculation)
+    // Add each item as a separate sale (all items share the same transactionId)
+    // The POS fee will be calculated once per transaction, not per item
     for (const item of order) {
       const saleData = {
         date: today,
@@ -96,6 +100,7 @@ export default function POSPage() {
         qty: item.qty,
         unitPrice: item.unitPrice,
         source: 'pos' as const, // Explicitly set as 'pos' type
+        transactionId: transactionId, // All items in this order share the same transactionId
       };
       await addSale(saleData);
     }

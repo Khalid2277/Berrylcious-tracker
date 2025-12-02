@@ -20,6 +20,7 @@ export interface Sale {
   qty: number;
   unitPrice: number;
   source?: 'pos' | 'manual'; // Track where the sale came from
+  transactionId?: string; // Group sales from the same POS transaction
 }
 
 export interface FixedCost {

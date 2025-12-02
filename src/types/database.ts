@@ -76,6 +76,7 @@ export interface Database {
           qty: number;
           unit_price: number;
           source: 'pos' | 'manual';
+          transaction_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -85,6 +86,7 @@ export interface Database {
           qty: number;
           unit_price: number;
           source?: 'pos' | 'manual';
+          transaction_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -93,6 +95,7 @@ export interface Database {
           qty?: number;
           unit_price?: number;
           source?: 'pos' | 'manual';
+          transaction_id?: string | null;
         };
       };
       fixed_costs: {

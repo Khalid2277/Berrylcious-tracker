@@ -156,6 +156,29 @@ export function SalesLog() {
   // Sort sales by date ascending for cumulative calculation
   const sortedSales = [...state.sales].sort((a, b) => a.date.localeCompare(b.date));
   
+  // Group POS sales by transactionId to calculate fees per transaction
+  const posTransactions = new Map<string, { sales: typeof sortedSales; totalRevenue: number }>();
+  sortedSales.forEach(sale => {
+    if (sale.source === 'pos' && sale.transactionId) {
+      if (!posTransactions.has(sale.transactionId)) {
+        posTransactions.set(sale.transactionId, { sales: [], totalRevenue: 0 });
+      }
+      const transaction = posTransactions.get(sale.transactionId)!;
+      transaction.sales.push(sale);
+      transaction.totalRevenue += sale.qty * sale.unitPrice;
+    }
+  });
+  
+  // Calculate fee per transaction: AED 1 + 2.6% of total transaction revenue
+  const transactionFees = new Map<string, number>();
+  posTransactions.forEach((transaction, transactionId) => {
+    const fee = 1 + (transaction.totalRevenue * 0.026);
+    transactionFees.set(transactionId, fee);
+  });
+  
+  // Track which transactions have had their fee applied (to show fee only on first item)
+  const transactionFeeApplied = new Set<string>();
+  
   let cumulativeRevenue = 0;
   let cumulativeProfit = 0;
   
@@ -163,9 +186,17 @@ export function SalesLog() {
     const product = state.products[sale.productId];
     const revenue = sale.qty * sale.unitPrice;
     
-    // Calculate auto POS fee for POS-sourced transactions: AED 1 + 2.6%
-    // Fee is applied per transaction (each sale item from POS gets the fee)
-    const autoPosFee = sale.source === 'pos' ? (1 + revenue * 0.026) : 0;
+    // Calculate auto POS fee: only once per transaction, shown on first item
+    let autoPosFee = 0;
+    if (sale.source === 'pos' && sale.transactionId) {
+      const transactionFee = transactionFees.get(sale.transactionId) || 0;
+      // Show fee only on the first sale of each transaction
+      if (!transactionFeeApplied.has(sale.transactionId)) {
+        autoPosFee = transactionFee;
+        transactionFeeApplied.add(sale.transactionId);
+      }
+    }
+    
     const netRevenue = revenue - autoPosFee;
     
     // Use the sale date to get the correct batch for cost calculation

@@ -183,7 +183,8 @@ export async function getSales(): Promise<Sale[] | null> {
     productId: row.product_id,
     qty: row.qty,
     unitPrice: row.unit_price,
-      source: (row.source as 'pos' | 'manual') || 'manual', // Default to 'manual' for existing sales
+    source: (row.source as 'pos' | 'manual') || 'manual', // Default to 'manual' for existing sales
+    transactionId: row.transaction_id || undefined, // Optional transactionId for grouping POS transactions
   })) || [];
   } catch {
     return null;
@@ -207,6 +208,7 @@ export async function addSale(sale: Omit<Sale, 'id'>): Promise<Sale | null> {
       qty: sale.qty,
       unit_price: sale.unitPrice,
       source: sourceValue, // Explicitly set source value
+      transaction_id: sale.transactionId || null, // Optional transactionId for grouping POS transactions
     });
 
   if (error) {

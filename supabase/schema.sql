@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS sales (
   qty INTEGER NOT NULL DEFAULT 1,
   unit_price DECIMAL(10, 2) NOT NULL,
   source TEXT DEFAULT 'manual' CHECK (source IN ('pos', 'manual')),
+  transaction_id TEXT, -- Groups sales from the same POS transaction
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

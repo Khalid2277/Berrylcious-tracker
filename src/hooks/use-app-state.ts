@@ -701,6 +701,9 @@ export function useAppState() {
     // Calculate total variable cost as sum of all ingredient purchases
     const totalVarCost = inventory.reduce((sum, inv) => sum + inv.totalCost, 0);
 
+    // Group POS sales by transactionId to calculate fees per transaction
+    const posTransactions = new Map<string, number>();
+    
     state.sales.forEach(sale => {
       const product = state.products[sale.productId];
       if (!product) return;
@@ -721,12 +724,18 @@ export function useAppState() {
       }
       totalCups += sale.qty;
 
-      // Calculate automatic POS fees for POS-sourced transactions only
-      // Fee structure: AED 1 + 2.6% per transaction (each sale item from POS gets the fee)
-      if (sale.source === 'pos') {
-        const transactionFee = 1 + (revenue * 0.026);
-        autoPosFees += transactionFee;
+      // Track POS transaction revenue (group by transactionId)
+      if (sale.source === 'pos' && sale.transactionId) {
+        const currentTotal = posTransactions.get(sale.transactionId) || 0;
+        posTransactions.set(sale.transactionId, currentTotal + revenue);
       }
+    });
+
+    // Calculate automatic POS fees: AED 1 + 2.6% per transaction (not per item)
+    // Fee is calculated once per transaction on the total transaction revenue
+    posTransactions.forEach((transactionRevenue) => {
+      const transactionFee = 1 + (transactionRevenue * 0.026);
+      autoPosFees += transactionFee;
     });
 
     const posFees = state.useManualPosFee 
