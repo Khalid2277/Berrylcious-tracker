@@ -677,6 +677,7 @@ export function useAppState() {
     let tipsRevenue = 0;
     let rockyDeduction = 0;
     let totalCups = 0;
+    let autoPosFees = 0;
 
     const usage = calculateIngredientUsage();
     const inventory = calculateInventory();
@@ -703,12 +704,19 @@ export function useAppState() {
         revenueExcludingRocky += revenue;
       }
       totalCups += sale.qty;
+
+      // Calculate automatic POS fees for POS-sourced transactions only
+      // Fee structure: AED 1 + 2.6% per transaction
+      if (sale.source === 'pos') {
+        autoPosFees += 1 + (revenue * 0.026);
+      }
     });
 
     const posFees = state.useManualPosFee 
       ? state.posFeeManual 
       : (state.posFeePercent / 100) * grossRevenue;
-    const totalRevenue = grossRevenue - posFees - rockyDeduction;  // Net revenue after POS fees and Rocky deduction
+    // Net revenue after manual POS fees, auto POS fees, and Rocky deduction
+    const totalRevenue = grossRevenue - posFees - autoPosFees - rockyDeduction;
     
     // Calculate proportional POS fees for revenue excluding Rocky (tips included)
     const revenueExclRockyRatio = grossRevenue > 0 ? revenueExcludingRocky / grossRevenue : 0;
@@ -736,6 +744,7 @@ export function useAppState() {
       rockyDeduction,
       totalVarCost,
       posFees,
+      autoPosFees,
       profitBeforeFixed,
       fixedTotal,
       netAfterFixed,

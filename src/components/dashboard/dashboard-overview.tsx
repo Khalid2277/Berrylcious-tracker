@@ -453,6 +453,13 @@ export function DashboardOverview() {
                 <span>POS Fees ({state.useManualPosFee ? 'Manual' : `${state.posFeePercent}%`})</span>
                 <span className="text-red-600">-{formatCurrency(stats.posFees)}</span>
               </div>
+
+              {stats.autoPosFees > 0 && (
+                <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                  <span>Auto POS Fees (AED 1 + 2.6%)</span>
+                  <span className="text-red-600">-{formatCurrency(stats.autoPosFees)}</span>
+                </div>
+              )}
               
               <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
                 <span>Rocky Road Deductions</span>
@@ -468,7 +475,7 @@ export function DashboardOverview() {
                 <span className="font-bold text-2xl text-primary">{formatCurrency(stats.totalRevenue)}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                {formatCurrency(stats.grossRevenue)} - {formatCurrency(stats.posFees)} - {formatCurrency(stats.rockyDeduction)}
+                {formatCurrency(stats.grossRevenue)} - {formatCurrency(stats.posFees + stats.autoPosFees)} - {formatCurrency(stats.rockyDeduction)}
               </p>
             </div>
 

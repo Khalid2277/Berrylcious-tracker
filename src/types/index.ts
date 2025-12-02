@@ -19,6 +19,7 @@ export interface Sale {
   productId: string;
   qty: number;
   unitPrice: number;
+  source?: 'pos' | 'manual'; // Track where the sale came from
 }
 
 export interface FixedCost {
@@ -136,7 +137,8 @@ export interface DashboardStats {
   tipsRevenue: number;
   rockyDeduction: number;  // 50 AED per Rocky Road transaction
   totalVarCost: number;
-  posFees: number;
+  posFees: number;  // Manual POS fees
+  autoPosFees: number;  // Automatic POS fees (AED 1 + 2.6%) for POS-sourced transactions
   profitBeforeFixed: number;
   fixedTotal: number;
   netAfterFixed: number;

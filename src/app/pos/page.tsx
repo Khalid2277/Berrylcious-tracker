@@ -88,13 +88,14 @@ export default function POSPage() {
 
     const today = format(new Date(), 'yyyy-MM-dd');
 
-    // Add each item as a separate sale
+    // Add each item as a separate sale (marked as POS source for automatic fee calculation)
     for (const item of order) {
       await addSale({
         date: today,
         productId: item.productId,
         qty: item.qty,
         unitPrice: item.unitPrice,
+        source: 'pos',
       });
     }
 
