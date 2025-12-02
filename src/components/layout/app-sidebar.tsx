@@ -8,7 +8,6 @@ import {
   Beef,
   CreditCard,
   Cherry,
-  Trash,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -43,10 +42,6 @@ const navigationItems = [
   {
     title: 'Ingredients',
     icon: Beef,
-  },
-  {
-    title: 'Waste Tracking',
-    icon: Trash,
   },
   {
     title: 'Transaction Classifier',

@@ -135,7 +135,7 @@ export function DashboardOverview() {
               <div className="flex items-center justify-between mb-2 sm:mb-4">
                 <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${card.iconBg} flex items-center justify-center`}>
                   <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.iconColor}`} />
-                </div>
+        </div>
                 {card.change && (
                   <span className={`text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full hidden sm:inline-block ${
                     card.changePositive 
@@ -145,13 +145,13 @@ export function DashboardOverview() {
                     {card.change}
                   </span>
                 )}
-              </div>
+      </div>
               <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 truncate">{card.title}</p>
               <div className={`text-lg sm:text-xl md:text-2xl font-bold ${card.valueColor} truncate`}>{card.value}</div>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate hidden sm:block">{card.description}</p>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
       </div>
 
       {/* Extra Summary Cards */}
@@ -174,22 +174,6 @@ export function DashboardOverview() {
             <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Fixed + Variable • Tap for details</p>
           </CardContent>
         </Card>
-        {stats.totalWasteCost > 0 && (
-          <Card>
-            <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
-                </div>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1">Waste Cost</p>
-              <div className="text-lg sm:text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
-                -{formatCurrency(stats.totalWasteCost)}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Breakeven Card */}
         <Card>
           <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
@@ -207,8 +191,8 @@ export function DashboardOverview() {
                 ~{Math.ceil(stats.remainingToBreakeven / avgProfitPerStrawberryCup)} cups to go
               </p>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Cost Breakdown Dialog */}
@@ -309,19 +293,6 @@ export function DashboardOverview() {
                 <span className="text-orange-600">{formatCurrency(stats.posFees + stats.rockyDeduction)}</span>
               </div>
             </div>
-
-            {stats.totalWasteCost > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground mb-3">WASTE</h4>
-                  <div className="flex justify-between items-center py-2 px-3 bg-red-50 dark:bg-red-950/30 rounded-lg">
-                    <span>Total Wasted Items</span>
-                    <span className="font-medium text-red-600">{formatCurrency(stats.totalWasteCost)}</span>
-                  </div>
-                </div>
-              </>
-            )}
 
             <Separator />
 
