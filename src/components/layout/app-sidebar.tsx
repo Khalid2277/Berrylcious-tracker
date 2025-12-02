@@ -8,6 +8,7 @@ import {
   Beef,
   CreditCard,
   Cherry,
+  Store,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,6 +27,10 @@ const navigationItems = [
   {
     title: 'Dashboard',
     icon: BarChart3,
+  },
+  {
+    title: 'Quick Sale',
+    icon: Store,
   },
   {
     title: 'Sales Log',

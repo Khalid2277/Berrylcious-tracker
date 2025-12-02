@@ -10,6 +10,7 @@ import { ProductsCosts } from '@/components/views/products-costs';
 import { FixedCostsView } from '@/components/views/fixed-costs';
 import { IngredientsView } from '@/components/views/ingredients';
 import { TransactionClassifier } from '@/components/views/transaction-classifier';
+import { WorkerPOS } from '@/components/views/worker-pos';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { useAppState } from '@/hooks/use-app-state';
 import { DashboardSkeleton, PageSkeleton } from '@/components/ui/loading-skeleton';
@@ -30,6 +31,8 @@ export default function Home() {
     switch (activeView) {
       case 'dashboard':
         return { title: 'Welcome back!', subtitle: 'Here\'s your business overview' };
+      case 'quick-sale':
+        return { title: 'Quick Sale', subtitle: 'Tap to add sales' };
       case 'sales-log':
         return { title: 'Sales Log', subtitle: 'Track and manage your sales' };
       case 'products-&-costs':
@@ -54,6 +57,8 @@ export default function Home() {
       switch (activeView) {
         case 'dashboard':
           return DashboardOverview;
+        case 'quick-sale':
+          return WorkerPOS;
         case 'sales-log':
           return SalesLog;
         case 'products-&-costs':
