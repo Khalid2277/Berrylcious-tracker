@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,9 +84,14 @@ export function IngredientsView() {
   }
 
   const activeBatch = getActiveStrawberryBatch();
-  // calculateInventory is a useCallback that already depends on state.manualInventoryAdjustments
-  // So it will automatically recalculate when manual adjustments change
+  // calculateInventory is a useCallback that depends on state.manualInventoryAdjustments
+  // It will recalculate when state changes, but we need to ensure the component re-renders
   const inventory = calculateInventory();
+  
+  // Debug: log when manual adjustments change
+  useEffect(() => {
+    console.log('Manual inventory adjustments changed:', state.manualInventoryAdjustments);
+  }, [state.manualInventoryAdjustments]);
 
   const handleAddIngredient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,7 +353,9 @@ export function IngredientsView() {
                                   onClick={async () => {
                                     const value = parseFloat(manualInventoryValue);
                                     if (!isNaN(value)) {
+                                      console.log('Saving manual inventory:', inv.ingredientId, value);
                                       await updateManualInventory(inv.ingredientId, value);
+                                      console.log('State after update:', state.manualInventoryAdjustments);
                                       toast.success('Inventory updated', {
                                         description: `${inv.name} remaining set to ${value.toLocaleString()} ${inv.unit}`,
                                       });
@@ -381,7 +388,9 @@ export function IngredientsView() {
                                 variant="ghost"
                                 className="w-full text-xs h-6 text-muted-foreground"
                                 onClick={async () => {
+                                  console.log('Resetting manual inventory:', inv.ingredientId);
                                   await updateManualInventory(inv.ingredientId, null);
+                                  console.log('State after reset:', state.manualInventoryAdjustments);
                                   toast.success('Reset to calculated', {
                                     description: `${inv.name} will use calculated remaining amount`,
                                   });
