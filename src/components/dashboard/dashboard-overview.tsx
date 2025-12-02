@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 export function DashboardOverview() {
-  const { state, calculateDashboardStats, calculateInventory, formatCurrency, isLoaded } = useAppState();
+  const { state, calculateDashboardStats, calculateInventory, calculateCostPerCup, formatCurrency, isLoaded } = useAppState();
   const [costDialogOpen, setCostDialogOpen] = useState(false);
   
   if (!isLoaded) {
@@ -20,6 +20,19 @@ export function DashboardOverview() {
 
   const stats = calculateDashboardStats();
   const inventory = calculateInventory();
+
+  // Calculate average profit per cup for strawberry products only (normal & kunafa)
+  const strawberryProductIds = ['normal', 'kunafa'];
+  const strawberrySales = state.sales.filter(s => strawberryProductIds.includes(s.productId));
+  const strawberryCupsTotal = strawberrySales.reduce((sum, s) => sum + s.qty, 0);
+  const strawberryRevenue = strawberrySales.reduce((sum, s) => sum + (s.qty * s.unitPrice), 0);
+  const strawberryCost = strawberrySales.reduce((sum, s) => {
+    const product = state.products[s.productId];
+    if (!product) return sum;
+    return sum + (s.qty * calculateCostPerCup(product, s.date));
+  }, 0);
+  const strawberryProfit = strawberryRevenue - strawberryCost;
+  const avgProfitPerStrawberryCup = strawberryCupsTotal > 0 ? strawberryProfit / strawberryCupsTotal : 0;
 
   const revenueCards = [
     {
@@ -402,16 +415,16 @@ export function DashboardOverview() {
                   )}
                 </div>
               </div>
-              {stats.remainingToBreakeven > 0 && stats.totalCups > 0 && (
+              {stats.remainingToBreakeven > 0 && avgProfitPerStrawberryCup > 0 && (
                 <div className="mt-3 pt-3 border-t border-amber-300/50">
                   <div className="flex justify-between text-sm">
-                    <span>Average profit per cup</span>
-                    <span>{formatCurrency(stats.profitBeforeFixed / stats.totalCups)}</span>
+                    <span>Avg profit per cup (Strawberry products)</span>
+                    <span>{formatCurrency(avgProfitPerStrawberryCup)}</span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span>Estimated cups to breakeven</span>
                     <span className="font-medium">
-                      ~{Math.ceil(stats.remainingToBreakeven / (stats.profitBeforeFixed / stats.totalCups || 1))} cups
+                      ~{Math.ceil(stats.remainingToBreakeven / avgProfitPerStrawberryCup)} cups
                     </span>
                   </div>
                 </div>
