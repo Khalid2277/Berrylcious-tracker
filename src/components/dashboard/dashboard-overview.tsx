@@ -22,29 +22,58 @@ export function DashboardOverview() {
   const stats = calculateDashboardStats();
   const inventory = calculateInventory();
 
-  // Calculate COGS (Cost of Goods Sold) - what was actually used, not purchased
-  const totalCOGS = state.sales.reduce((sum, sale) => {
-    const product = state.products[sale.productId];
-    if (!product) return sum;
-    const costPerCup = calculateCostPerCup(product, sale.date);
-    return sum + (sale.qty * costPerCup);
-  }, 0);
+  // Calculate COGS (Cost of Goods Sold) based on actual usage ratio
+  // COGS = For each ingredient: (used / purchased) × total cost
+  const calculateActualCOGS = () => {
+    let cogs = 0;
+    
+    for (const inv of inventory) {
+      if (inv.totalPurchased > 0 && inv.totalUsed > 0) {
+        // Only count what was actually purchased, proportional to usage
+        const usageRatio = Math.min(inv.totalUsed / inv.totalPurchased, 1); // Cap at 100%
+        cogs += inv.totalCost * usageRatio;
+      }
+    }
+    
+    // Add manual cost products (Rocky, Cookies, etc.)
+    state.sales.forEach(sale => {
+      const product = state.products[sale.productId];
+      if (product?.useManualCost) {
+        cogs += sale.qty * (product.manualCostPerCup || 0);
+      }
+    });
+    
+    return cogs;
+  };
+  
+  const totalCOGS = calculateActualCOGS();
 
-  // Calculate profit based on COGS (same as Sales Log)
+  // Calculate profit based on COGS
   const grossProfitCOGS = stats.totalRevenue - totalCOGS;
   const netProfitCOGS = grossProfitCOGS - stats.fixedTotal;
   const remainingToBreakevenCOGS = netProfitCOGS >= 0 ? 0 : Math.abs(netProfitCOGS);
 
   // Calculate average profit per cup for strawberry products only (normal & kunafa)
+  // Use COGS proportional to strawberry product sales
   const strawberryProductIds = ['normal', 'kunafa'];
   const strawberrySales = state.sales.filter(s => strawberryProductIds.includes(s.productId));
   const strawberryCupsTotal = strawberrySales.reduce((sum, s) => sum + s.qty, 0);
   const strawberryRevenue = strawberrySales.reduce((sum, s) => sum + (s.qty * s.unitPrice), 0);
-  const strawberryCost = strawberrySales.reduce((sum, s) => {
-    const product = state.products[s.productId];
-    if (!product) return sum;
-    return sum + (s.qty * calculateCostPerCup(product, s.date));
+  
+  // Calculate strawberry product COGS proportionally
+  const totalCupsAll = state.sales.reduce((sum, s) => {
+    const p = state.products[s.productId];
+    return p && !p.useManualCost ? sum + s.qty : sum;
   }, 0);
+  const strawberryCOGSRatio = totalCupsAll > 0 ? strawberryCupsTotal / totalCupsAll : 0;
+  const ingredientCOGS = inventory.reduce((sum, inv) => {
+    if (inv.totalPurchased > 0 && inv.totalUsed > 0) {
+      const usageRatio = Math.min(inv.totalUsed / inv.totalPurchased, 1);
+      return sum + inv.totalCost * usageRatio;
+    }
+    return sum;
+  }, 0);
+  const strawberryCost = ingredientCOGS * strawberryCOGSRatio;
   const strawberryProfit = strawberryRevenue - strawberryCost;
   const avgProfitPerStrawberryCup = strawberryCupsTotal > 0 ? strawberryProfit / strawberryCupsTotal : 0;
 
