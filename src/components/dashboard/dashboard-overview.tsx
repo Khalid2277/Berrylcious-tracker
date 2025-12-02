@@ -14,6 +14,8 @@ export function DashboardOverview() {
   const { state, calculateDashboardStats, calculateInventory, calculateCostPerCup, formatCurrency, isLoaded } = useAppState();
   const [costDialogOpen, setCostDialogOpen] = useState(false);
   const [revenueDialogOpen, setRevenueDialogOpen] = useState(false);
+  const [variableCostDialogOpen, setVariableCostDialogOpen] = useState(false);
+  const [salesDialogOpen, setSalesDialogOpen] = useState(false);
   
   if (!isLoaded) {
     return <DashboardSkeleton />;
@@ -94,22 +96,22 @@ export function DashboardOverview() {
       title: 'Total Variable Cost',
       value: formatCurrency(stats.totalVarCost),
       icon: Package,
-      description: 'Total purchases',
+      description: 'Tap to see breakdown',
       iconBg: 'bg-red-100 dark:bg-red-900/30',
       iconColor: 'text-red-600 dark:text-red-400',
       valueColor: 'text-foreground',
-      clickable: false,
+      clickable: true,
     },
     {
-      id: 'cups',
-      title: 'Total Cups',
+      id: 'sales',
+      title: 'Total Sales',
       value: stats.totalCups.toLocaleString(),
-      icon: Coffee,
-      description: 'Units sold',
+      icon: ShoppingCart,
+      description: 'Tap to see summary',
       iconBg: 'bg-blue-100 dark:bg-blue-900/30',
       iconColor: 'text-blue-600 dark:text-blue-400',
       valueColor: 'text-foreground',
-      clickable: false,
+      clickable: true,
     },
     {
       id: 'profit',
@@ -173,7 +175,11 @@ export function DashboardOverview() {
             key={card.id} 
             className={`transition-all hover:shadow-md ${card.clickable ? 'cursor-pointer' : ''}`}
             style={{ animationDelay: `${index * 50}ms` }}
-            onClick={() => card.id === 'net-revenue' && setRevenueDialogOpen(true)}
+            onClick={() => {
+              if (card.id === 'net-revenue') setRevenueDialogOpen(true);
+              if (card.id === 'var-cost') setVariableCostDialogOpen(true);
+              if (card.id === 'sales') setSalesDialogOpen(true);
+            }}
           >
             <CardContent className="p-3 sm:p-4 md:pt-6 md:px-6">
               <div className="flex items-center justify-between mb-2 sm:mb-4">
@@ -484,6 +490,111 @@ export function DashboardOverview() {
                 <p><strong>Note:</strong> Gross revenue includes tips of {formatCurrency(stats.tipsRevenue)}</p>
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Variable Cost Breakdown Dialog */}
+      <Dialog open={variableCostDialogOpen} onOpenChange={setVariableCostDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Total Variable Cost Breakdown
+            </DialogTitle>
+            <DialogDescription>
+              Total amount spent on variable items (ingredients)
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-muted-foreground">INGREDIENT PURCHASES</h4>
+              {inventory.map((inv) => (
+                <div key={inv.ingredientId} className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                  <span>{inv.name}</span>
+                  <span className="font-medium">
+                    {formatCurrency(inv.totalCost)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <Separator />
+
+            <div className="bg-primary/10 p-4 rounded-xl">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-lg">Total Variable Cost</span>
+                <span className="font-bold text-2xl text-red-600">{formatCurrency(stats.totalVarCost)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Sum of all ingredient purchases
+              </p>
+            </div>
+
+            <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+              <p><strong>Note:</strong> This represents the total amount spent on variable items (ingredients), not the cost of goods sold (COGS) based on usage.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sales Summary Dialog */}
+      <Dialog open={salesDialogOpen} onOpenChange={setSalesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Sales Summary
+            </DialogTitle>
+            <DialogDescription>
+              Breakdown of sales by product
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-muted-foreground">SALES BY PRODUCT</h4>
+              {salesByProduct.map((product) => (
+                <div key={product.name} className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                  <div>
+                    <span className="font-medium">{product.name}</span>
+                    <p className="text-xs text-muted-foreground">{product.value} units</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-medium">{formatCurrency(product.revenue)}</span>
+                    <p className="text-xs text-muted-foreground">
+                      {product.value > 0 ? formatCurrency(product.revenue / product.value) : '0'} per unit
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Separator />
+
+            <div className="bg-primary/10 p-4 rounded-xl">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-lg">Total Sales</span>
+                <span className="font-bold text-2xl text-blue-600">{stats.totalCups.toLocaleString()} units</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Total units sold across all products
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                <span>Total Revenue</span>
+                <span className="font-medium text-emerald-600">{formatCurrency(stats.grossRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 px-3 bg-muted/50 rounded-lg">
+                <span>Average Price per Unit</span>
+                <span className="font-medium">
+                  {stats.totalCups > 0 ? formatCurrency(stats.grossRevenue / stats.totalCups) : formatCurrency(0)}
+                </span>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
