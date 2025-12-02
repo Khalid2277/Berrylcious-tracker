@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,10 +63,9 @@ export function SalesLog() {
   const fixedTotal = state.fixedCosts.reduce((sum, c) => sum + c.amount, 0);
 
   // Get unique dates from sales for filter
-  const uniqueDates = useMemo(() => {
-    const dates = [...new Set(state.sales.map(s => s.date))].sort().reverse();
-    return dates;
-  }, [state.sales]);
+  const dateSet = new Set<string>();
+  state.sales.forEach(sale => dateSet.add(sale.date));
+  const uniqueDates = Array.from(dateSet).sort().reverse();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

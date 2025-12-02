@@ -179,17 +179,17 @@ export function DashboardOverview() {
               <div className="flex items-center justify-between mb-2 sm:mb-4">
                 <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl ${card.iconBg} flex items-center justify-center`}>
                   <card.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${card.iconColor}`} />
-                </div>
+        </div>
                 {card.clickable && (
                   <Info className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 )}
-              </div>
+      </div>
               <p className="text-xs sm:text-sm text-muted-foreground mb-0.5 sm:mb-1 truncate">{card.title}</p>
               <div className={`text-lg sm:text-xl md:text-2xl font-bold ${card.valueColor} truncate`}>{card.value}</div>
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate hidden sm:block">{card.description}</p>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
       </div>
 
       {/* Extra Summary Cards */}
@@ -229,8 +229,8 @@ export function DashboardOverview() {
                 ~{Math.ceil(remainingToBreakevenCOGS / avgProfitPerStrawberryCup)} cups to go
               </p>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Cost Breakdown Dialog */}
