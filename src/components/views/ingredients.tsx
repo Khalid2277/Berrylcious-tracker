@@ -223,16 +223,31 @@ export function IngredientsView() {
       {/* Active Strawberry Info */}
       {activeBatch && (
         <Card className="border-rose-200 bg-gradient-to-r from-rose-50/80 to-pink-50/80 dark:border-rose-900/50 dark:from-rose-950/30 dark:to-pink-950/30">
-          <CardContent className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-              <Cherry className="h-6 w-6 text-rose-500" />
-              <div>
-                <p className="font-medium text-rose-800 dark:text-rose-300">Active Strawberry Batch: {activeBatch.name}</p>
-                <p className="text-sm text-rose-600 dark:text-rose-400">
-                  Cost per gram: {activeBatch.costPerGram.toFixed(4)} AED | 
-                  Cost per strawberry: {formatCurrency(activeBatch.costPerStrawberry)} | 
-                  Avg weight: {activeBatch.avgWeightPerStrawberry}g
+          <CardContent className="py-3 sm:py-4">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Cherry className="h-5 w-5 sm:h-6 sm:w-6 text-rose-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm sm:text-base text-rose-800 dark:text-rose-300">
+                  <span className="hidden sm:inline">Active Strawberry Batch: </span>
+                  <span className="sm:hidden">Active Batch: </span>
+                  {activeBatch.name}
                 </p>
+                <div className="text-xs sm:text-sm text-rose-600 dark:text-rose-400 mt-1 space-y-0.5 sm:space-y-0">
+                  <p className="sm:hidden">
+                    <span className="font-medium">Cost/g:</span> {activeBatch.costPerGram.toFixed(4)} AED
+                  </p>
+                  <p className="sm:hidden">
+                    <span className="font-medium">Cost/strawberry:</span> {formatCurrency(activeBatch.costPerStrawberry)}
+                  </p>
+                  <p className="sm:hidden">
+                    <span className="font-medium">Avg weight:</span> {activeBatch.avgWeightPerStrawberry}g
+                  </p>
+                  <p className="hidden sm:block">
+                    Cost per gram: {activeBatch.costPerGram.toFixed(4)} AED | 
+                    Cost per strawberry: {formatCurrency(activeBatch.costPerStrawberry)} | 
+                    Avg weight: {activeBatch.avgWeightPerStrawberry}g
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -240,12 +255,26 @@ export function IngredientsView() {
       )}
 
       <Tabs defaultValue="inventory" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="strawberries">Strawberry Batches</TabsTrigger>
-          <TabsTrigger value="batches">Other Batches</TabsTrigger>
-          <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto scrollbar-thin -mx-1 px-1">
+          <TabsList className="grid w-full min-w-max grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
+            <TabsTrigger value="inventory" className="text-xs sm:text-sm px-2 sm:px-3 py-2 whitespace-nowrap">
+              <span className="hidden sm:inline">Inventory</span>
+              <span className="sm:hidden">Stock</span>
+            </TabsTrigger>
+            <TabsTrigger value="strawberries" className="text-xs sm:text-sm px-2 sm:px-3 py-2 whitespace-nowrap">
+              <span className="hidden sm:inline">Strawberry Batches</span>
+              <span className="sm:hidden">Strawberries</span>
+            </TabsTrigger>
+            <TabsTrigger value="batches" className="text-xs sm:text-sm px-2 sm:px-3 py-2 whitespace-nowrap">
+              <span className="hidden sm:inline">Other Batches</span>
+              <span className="sm:hidden">Batches</span>
+            </TabsTrigger>
+            <TabsTrigger value="ingredients" className="text-xs sm:text-sm px-2 sm:px-3 py-2 whitespace-nowrap">
+              <span className="hidden sm:inline">Ingredients</span>
+              <span className="sm:hidden">Items</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Inventory Tab */}
         <TabsContent value="inventory" className="space-y-4">

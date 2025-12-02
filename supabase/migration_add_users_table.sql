@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL, -- In production, use proper password hashing (bcrypt, etc.)
+  password_hash TEXT NOT NULL, -- Stores bcrypt hashes (60 chars), never plain text passwords
   role TEXT NOT NULL CHECK (role IN ('owner', 'seller')),
   name TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
